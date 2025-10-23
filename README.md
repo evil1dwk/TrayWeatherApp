@@ -98,7 +98,7 @@ C:\Projects\TrayWeatherApp\
 │   ├── Light.zip
 │   └── Beach.zip
 │
-├── release\                       ← new output folder for final installers
+├── release\                     
 │   └── windows\
 │       └── TrayWeatherApp-Install.exe  ← rebuilt Windows installer
 │
