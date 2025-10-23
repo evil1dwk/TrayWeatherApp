@@ -8,7 +8,7 @@ Before running or building the app, install dependencies listed in `requirements
 
 ---
 ### Installation
-<span style="color: red;">**NOTE:**</span> There is a prebuilt installtion file in the realse\windows folder
+**NOTE:** There is a prebuilt installtion file in the realse\windows folder
 
 From the project root (`C:\Projects\TrayWeatherApp\`), run:
 
@@ -82,24 +82,34 @@ Run this from **PowerShell** at the project root:
 ## Folder Layout
 
 ```
-C:\Projects\TrayWeatherApp│
+C:\Projects\TrayWeatherApp\
+│
 ├── build.ps1
-├── requirements.txt           ← project dependencies
-├── TrayWeatherApp.exe         ← standalone app (deleted after successful Inno build)
-├── TrayWeatherApp.ico         ← app icon
-├── build│   └── windows│       └── TrayWeatherApp.iss ← Inno Setup script
-├── themes\                    ← external themes (not bundled)
+├── requirements.txt               ← project dependencies
+├── TrayWeatherApp.exe             ← standalone app (deleted after successful Inno build)
+├── TrayWeatherApp.ico             ← app icon
+│
+├── build\
+│   └── windows\
+│       └── TrayWeatherApp.iss     ← Inno Setup script
+│
+├── themes\                        ← external themes (not bundled)
 │   ├── Dark.zip
 │   ├── Light.zip
 │   └── Beach.zip
-└── TrayWeatherApp\            ← Python source package
+│
+├── release\                       ← new output folder for final installers
+│   └── windows\
+│       └── TrayWeatherApp-Install.exe  ← rebuilt Windows installer
+│
+└── TrayWeatherApp\                ← Python source package
     ├── main.py
     ├── app.py
     ├── windows.py
     ├── theme.py
     ├── config_utils.py
-    ├── ...
-```
+    ├── __init__.py
+    └── ...```
 
 ---
 
