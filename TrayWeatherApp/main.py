@@ -2,7 +2,6 @@
 
 from TrayWeatherApp.app import TrayWeatherApp
 
-
 def main():
     app = TrayWeatherApp()
     app.run()

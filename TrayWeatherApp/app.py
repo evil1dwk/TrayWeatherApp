@@ -11,8 +11,6 @@ from TrayWeatherApp.weather import WeatherWindow
 from TrayWeatherApp.workers import WeatherWorker
 import sys, io, json
 
-
-
 # ---------- Main App ----------
 class TrayWeatherApp:
     REFRESH_INTERVAL_MS = 15 * 60 * 1000

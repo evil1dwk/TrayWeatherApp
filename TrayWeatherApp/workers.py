@@ -1,10 +1,8 @@
 # TrayWeatherApp module: workers.py
-
 from datetime import datetime, timezone, timedelta
 from PyQt6.QtCore import QObject, pyqtSignal
 from TrayWeatherApp.config_utils import log
 import requests
-
 
 # ---------- Weather Window ----------
 class WeatherWorker(QObject):
@@ -61,7 +59,7 @@ class WeatherWorker(QObject):
             tz_offset = d.get("utc_offset_seconds", 0)
             local_time = datetime.utcnow() + timedelta(seconds=tz_offset)
             hour = local_time.hour
-            is_night = hour < 6 or hour >= 18  # 6 AM–6 PM heuristic
+            is_night = hour < 6 or hour >= 18
 
             desc, emoji = self.map_weather_code(cur.get("weather_code"), is_night=is_night)
 

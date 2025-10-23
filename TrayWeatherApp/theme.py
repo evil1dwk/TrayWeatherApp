@@ -5,14 +5,13 @@ from PyQt6.QtWidgets import QApplication
 from TrayWeatherApp.config_utils import THEMES_DIR
 import re, zipfile, json, io, colorsys
 
-
 # ---------- Theme Manager ----------
 class ThemeManager:
     def __init__(self):
         self.current_name = None
         self.current_css = ""
         self.current_json = {}
-        self.cache = {}  # name -> (css, json_dict)
+        self.cache = {}
 
     def list_themes(self):
         names = []
@@ -57,26 +56,21 @@ class ThemeManager:
         self.current_json = json_obj
 
     def _luminance(self, hex_color: str) -> float:
-        """Return 0..1 brightness value from a hex color."""
         qc = QColor(hex_color)
         r, g, b = qc.redF(), qc.greenF(), qc.blueF()
         return colorsys.rgb_to_hls(r, g, b)[1]
 
     def _auto_link_color(self) -> str:
-        """Choose a contrasting link color automatically based on theme brightness."""
         link = self.value("link_color", "#7DD3FC")
         bg = self.value("background_gradient", ["#12141A", "#1A2036"])
         bg_hex = bg[0] if isinstance(bg, list) and bg else "#12141A"
         brightness = self._luminance(bg_hex)
         if brightness > 0.6:
-            # Bright background → darker link
             return "#0A3D62"
         else:
-            # Dark background → bright cyan
             return "#7DD3FC"
 
     def apply_to_app(self, app: QApplication):
-        """Apply stylesheet and adaptive palette colors to the entire app."""
         app.setStyleSheet(self.current_css or "")
 
         pal = app.palette()
@@ -94,7 +88,6 @@ class ThemeManager:
 
     @staticmethod
     def parse_color(value: str, default: str = "#000000") -> QColor:
-        """Parse rgba() or hex string into QColor."""
         if not isinstance(value, str):
             return QColor(default)
         s = value.strip()

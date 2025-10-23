@@ -139,5 +139,3 @@ def enable_windows_acrylic(widget):
         ctypes.windll.user32.SetWindowCompositionAttribute(ctypes.c_void_p(hwnd), ctypes.byref(data))
     except Exception as e:
         log(f"Acrylic blur unavailable: {e}")
-
-# ---------- Theme Manager ----------

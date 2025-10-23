@@ -19,7 +19,6 @@ from PyQt6.QtWidgets import QGraphicsDropShadowEffect
 from TrayWeatherApp.config_utils import log, set_sun_icon, enable_windows_acrylic
 from TrayWeatherApp.theme import ThemeManager
 
-
 # ---------- Glass Card ----------
 class GlassCard(QWidget):
     def __init__(self, app_ref):
