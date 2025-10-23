@@ -111,23 +111,41 @@ C:\Projects\TrayWeatherApp\
 - You can adjust the icon path or app name by editing the PowerShell script.
 - If Inno Setup isn’t found, the script will still produce a standalone EXE.
 - `requirements.txt` ensures consistency across build environments.
+- The configuration and a log files are saved to: 
+  ```
+  C:\Users\evil1\.TrayWeatherApp\
+  ```
 
+---
 
-### Example Console Output
+## 🛠️ Configuration File
+
+TrayNSLookup stores your settings and history in a JSON file:
+```json
+{
+  "cities": [
+    "New York"
+  ],
+  "units": "imperial",
+  "window_pos": [
+    734,
+    582
+  ],
+  "window_size": [
+    1180,
+    421
+  ],
+  "debug": false,
+  "time_format_24h": false,
+  "theme": "Carbon Fiber"
+}
 ```
-========================================
-   Building TrayWeatherApp Executable
-========================================
-[INFO] Running PyInstaller...
-[INFO] Moving TrayWeatherApp.exe to root directory...
-[INFO] Cleaning up build and dist folders...
-[INFO] Removing __pycache__ directories...
-[INFO] Running Inno Setup Compiler...
-[SUCCESS] Inno Setup build completed successfully.
-Installer created:
-   C:\Projects\TrayWeatherApp\Output\TrayWeatherAppSetup.exe
-[INFO] Removed standalone EXE: C:\Projects\TrayWeatherApp\TrayWeatherApp.exe
 
-[DONE] Build process complete.
-========================================
-```
+You can delete this file to reset the app.
+
+---
+
+## Building Tips
+
+- Always run the PyInstaller command from the **project root**.
+- The `.spec` file can simplify rebuilding.
