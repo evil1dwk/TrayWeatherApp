@@ -120,7 +120,7 @@ C:\Projects\TrayWeatherApp\
 
 ## 🛠️ Configuration File
 
-TrayNSLookup stores your settings and history in a JSON file:
+TrayNSLookup stores your settings in a JSON file:
 ```json
 {
   "cities": [
