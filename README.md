@@ -1,11 +1,9 @@
-# TrayWeatherApp — Build and Deployment Guide
 
-This package contains the full unaltered logic of your TrayWeatherApp split into modules.
+## Dependencies and Requirements
+Before running or building the app, install dependencies listed in `requirements.txt`.
 
 ---
-
 ## Running the App (Development Mode)
-
 To run directly from source:
 
 ```bash
@@ -16,11 +14,6 @@ This launches the tray-based weather app using your system Python installation.
 Themes should be located in the `themes/` folder beside your project root.
 
 ---
-
-## Dependencies and Requirements
-
-Before running or building the app, install dependencies listed in `requirements.txt`.
-
 ### Installation
 From the project root (`C:\Projects\TrayWeatherApp\`), run:
 
