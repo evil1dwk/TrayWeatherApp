@@ -113,7 +113,7 @@ C:\Projects\TrayWeatherApp\
 - `requirements.txt` ensures consistency across build environments.
 - The configuration and a log files are saved to: 
   ```
-  C:\Users\evil1\.TrayWeatherApp\
+  C:\Users\<YourName>\.TrayWeatherApp\
   ```
 
 ---
