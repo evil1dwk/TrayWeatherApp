@@ -26,6 +26,7 @@ pyinstaller>=6.0
 ```
 
 You can update versions as needed, but these provide a stable baseline for TrayWeatherApp.
+
 ---
 ## Running the App (Development Mode)
 To run directly from source:
