@@ -46,8 +46,9 @@ To package TrayWeatherApp into a standalone Windows `.exe`, use the PowerShell b
 - Python 3.10+
 - PyInstaller installed via requirements.txt
 - (Optional) Inno Setup if you want to build an installer:
-  [Download Inno Setup](https://jrsoftware.org/isinfo.php)
 
+  [Download Inno Setup](https://jrsoftware.org/isinfo.php)
+  if Inno Setup is not installed a standalone exe file will be created.
 ---
 
 ## Build Script: `build.ps1`
