@@ -1,6 +1,6 @@
 # TrayWeatherApp — Build and Deployment Guide
 This Repository contains the full source for the TrayWeatherApp, several themes
-and an automated build powershell script for making a windows executable.
+and an automated build powershell script for making a windows EXE.
 
 ---
 ## Dependencies and Requirements
@@ -40,7 +40,7 @@ You can update versions as needed, but these provide a stable baseline for TrayW
 
 ## Building the Executable (Windows)
 
-To package TrayWeatherApp into a standalone Windows `.exe`, use the PowerShell build script.
+To package TrayWeatherApp into a standalone Windows EXE, use the PowerShell build script.
 
 ### Prerequisites
 - Python 3.10+
@@ -72,7 +72,7 @@ Run this from **PowerShell** at the project root:
    build\windows\TrayWeatherApp.iss
    ```
 6. If Inno Setup completes successfully:
-   - Displays the full installer `.exe` path.
+   - Displays the full installer EXE path.
    - Deletes the standalone EXE from the root folder.
 7. If Inno Setup fails or is skipped, the standalone EXE remains in the project root.
 
