@@ -1,4 +1,8 @@
+# TrayWeatherApp — Build and Deployment Guide
+This Repository contains the full unaltered source for the TrayWeatherApp, several themes
+and the an automated build powershell script for making a windows executable.
 
+---
 ## Dependencies and Requirements
 Before running or building the app, install dependencies listed in `requirements.txt`.
 
