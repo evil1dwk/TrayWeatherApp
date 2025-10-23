@@ -7,17 +7,6 @@ and an automated build powershell script for making a windows EXE.
 Before running or building the app, install dependencies listed in `requirements.txt`.
 
 ---
-## Running the App (Development Mode)
-To run directly from source:
-
-```bash
-python -m TrayWeatherApp
-```
-
-This launches the tray-based weather app using your system Python installation.  
-Themes should be located in the `themes/` folder beside your project root.
-
----
 ### Installation
 From the project root (`C:\Projects\TrayWeatherApp\`), run:
 
@@ -37,7 +26,17 @@ pyinstaller>=6.0
 You can update versions as needed, but these provide a stable baseline for TrayWeatherApp.
 
 ---
+## Running the App (Development Mode)
+To run directly from source:
 
+```bash
+python -m TrayWeatherApp
+```
+
+This launches the tray-based weather app using your system Python installation.  
+Themes should be located in the `themes/` folder beside your project root.
+
+---
 ## Building the Executable (Windows)
 
 To package TrayWeatherApp into a standalone Windows EXE, use the PowerShell build script.
