@@ -59,7 +59,7 @@ The `build.ps1` script automates the entire packaging process.
 
 Run this from **PowerShell** at the project root:
 ```powershell
-.build.ps1 -AppName TrayWeatherApp
+.\build.ps1 -AppName TrayWeatherApp
 ```
 
 ### What It Does
