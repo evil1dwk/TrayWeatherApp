@@ -99,9 +99,9 @@ C:\Projects\TrayWeatherApp\
 │   ├── Light.zip
 │   └── Beach.zip
 │
-├── release\                       ← new output folder for final installers
+├── release\                     
 │   └── windows\
-│       └── TrayWeatherApp-Install.exe  ← rebuilt Windows installer
+│       └── TrayWeatherApp-Install.exe  ← prebuilt Windows installer
 │
 └── TrayWeatherApp\                ← Python source package
     ├── main.py
@@ -110,10 +110,10 @@ C:\Projects\TrayWeatherApp\
     ├── theme.py
     ├── config_utils.py
     ├── __init__.py
-    └── ...```
+    └── ...
+```
 
 ---
-
 ## Notes
 - The resulting EXE is **portable** and reads themes from the external `themes` folder.
 - You can adjust the icon path or app name by editing the PowerShell script.
