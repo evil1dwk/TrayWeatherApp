@@ -83,6 +83,19 @@ Remove-Item -Recurse -Force (Join-Path $SrcDir "build") -ErrorAction SilentlyCon
 Remove-Item -Recurse -Force (Join-Path $SrcDir "dist") -ErrorAction SilentlyContinue
 Remove-Item (Join-Path $SrcDir "$AppName.spec") -ErrorAction SilentlyContinue
 
+# Clean Python cache folders (__pycache__)
+Write-Host "[INFO] Removing __pycache__ directories..."
+Get-ChildItem -Path $RootDir -Directory -Recurse -Force -ErrorAction SilentlyContinue |
+    Where-Object { $_.Name -eq "__pycache__" } |
+    ForEach-Object {
+        try {
+            Remove-Item -Recurse -Force $_.FullName -ErrorAction Stop
+            Write-Host "[INFO] Removed: $($_.FullName)"
+        } catch {
+            Write-Host "[WARN] Could not remove: $($_.FullName)"
+        }
+    }
+
 # Return to root directory
 Set-Location $RootDir
 Write-Host "[INFO] Returned to root directory."
