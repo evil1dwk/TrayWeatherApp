@@ -8,6 +8,8 @@ Before running or building the app, install dependencies listed in `requirements
 
 ---
 ### Installation
+<span style="color: red;">**NOTE:**</span> There is a prebuilt installtion file in the realse\windows folder
+
 From the project root (`C:\Projects\TrayWeatherApp\`), run:
 
 ```bash
@@ -24,7 +26,6 @@ pyinstaller>=6.0
 ```
 
 You can update versions as needed, but these provide a stable baseline for TrayWeatherApp.
-
 ---
 ## Running the App (Development Mode)
 To run directly from source:
@@ -47,6 +48,7 @@ To package TrayWeatherApp into a standalone Windows EXE, use the PowerShell buil
 - (Optional) Inno Setup if you want to build an installer:
 
   [Download Inno Setup](https://jrsoftware.org/isinfo.php)
+
   If Inno Setup is not installed a standalone exe file will be created.
 ---
 
