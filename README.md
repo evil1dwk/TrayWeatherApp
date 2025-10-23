@@ -109,8 +109,7 @@ C:\Projects\TrayWeatherApp\
     ├── theme.py
     ├── config_utils.py
     ├── __init__.py
-    └── ...```
-
+    └── ...
 ---
 
 ## Notes
