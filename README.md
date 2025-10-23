@@ -2,11 +2,9 @@
 This Repository contains the full source for the TrayWeatherApp, several themes
 and an automated build powershell script for making a windows EXE.
 
----
 ## Dependencies and Requirements
 Before running or building the app, install dependencies listed in `requirements.txt`.
 
----
 ### Installation
 **NOTE:** There is a prebuilt installtion file in the realse\windows folder
 
@@ -27,7 +25,6 @@ pyinstaller>=6.0
 
 You can update versions as needed, but these provide a stable baseline for TrayWeatherApp.
 
----
 ## Running the App (Development Mode)
 To run directly from source:
 
@@ -38,7 +35,6 @@ python -m TrayWeatherApp
 This launches the tray-based weather app using your system Python installation.  
 Themes should be located in the `themes/` folder beside your project root.
 
----
 ## Building the Executable (Windows)
 
 To package TrayWeatherApp into a standalone Windows EXE, use the PowerShell build script.
@@ -51,7 +47,6 @@ To package TrayWeatherApp into a standalone Windows EXE, use the PowerShell buil
   [Download Inno Setup](https://jrsoftware.org/isinfo.php)
 
   If Inno Setup is not installed a standalone exe file will be created.
----
 
 ## Build Script: `build.ps1`
 The `build.ps1` script automates the entire packaging process.
@@ -78,10 +73,8 @@ Run this from **PowerShell** at the project root:
    - Deletes the standalone EXE from the root folder.
 7. If Inno Setup fails or is skipped, the standalone EXE remains in the project root.
 
----
 
 ## Folder Layout
-
 ```
 C:\Projects\TrayWeatherApp\
 │
@@ -113,14 +106,12 @@ C:\Projects\TrayWeatherApp\
     └── ...
 ```
 
----
 ## Notes
 - The resulting EXE is **portable** and reads themes from the external `themes` folder.
 - You can adjust the icon path or app name by editing the PowerShell script.
 - If Inno Setup isn’t found, the script will still produce a standalone EXE.
 - `requirements.txt` ensures consistency across build environments.
 
----
 
 ### Example Console Output
 ```
