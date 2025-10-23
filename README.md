@@ -48,11 +48,10 @@ To package TrayWeatherApp into a standalone Windows `.exe`, use the PowerShell b
 - (Optional) Inno Setup if you want to build an installer:
 
   [Download Inno Setup](https://jrsoftware.org/isinfo.php)
-  if Inno Setup is not installed a standalone exe file will be created.
+  If Inno Setup is not installed a standalone exe file will be created.
 ---
 
 ## Build Script: `build.ps1`
-
 The `build.ps1` script automates the entire packaging process.
 
 Run this from **PowerShell** at the project root:
@@ -104,10 +103,9 @@ C:\Projects\TrayWeatherApp│
 ---
 
 ## Notes
-
 - The resulting EXE is **portable** and reads themes from the external `themes` folder.
 - You can adjust the icon path or app name by editing the PowerShell script.
-- If Inno Setup isn’t found, the script will still produce the standalone EXE.
+- If Inno Setup isn’t found, the script will still produce a standalone EXE.
 - `requirements.txt` ensures consistency across build environments.
 
 ---
