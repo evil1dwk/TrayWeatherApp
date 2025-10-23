@@ -110,8 +110,9 @@ C:\Projects\TrayWeatherApp\
     ├── config_utils.py
     ├── __init__.py
     └── ...
----
+```
 
+---
 ## Notes
 - The resulting EXE is **portable** and reads themes from the external `themes` folder.
 - You can adjust the icon path or app name by editing the PowerShell script.
