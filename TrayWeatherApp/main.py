@@ -1,4 +1,7 @@
+# TrayWeatherApp module: main.py
+
 from TrayWeatherApp.app import TrayWeatherApp
+
 
 def main():
     app = TrayWeatherApp()

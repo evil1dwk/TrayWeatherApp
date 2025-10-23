@@ -1,17 +1,20 @@
-from PyQt6.QtWidgets import (
-    QWidget, QVBoxLayout, QTabWidget, QInputDialog, QToolButton, QTabBar,
-    QLabel, QSizePolicy, QSpacerItem, QDialog, QFormLayout, QComboBox,
-    QCheckBox, QPushButton, QHBoxLayout
-)
+# TrayWeatherApp module: weather.py
+
+from PyQt6.QtCore import Qt
+from datetime import datetime, timezone, timedelta
 from PyQt6.QtCore import Qt, QTimer
 from PyQt6.QtGui import (
     QPixmap, QFont, QIcon, QPainter, QLinearGradient, QColor,
     QPainterPath
 )
-from datetime import datetime, timezone, timedelta
-from .config_utils import set_sun_icon, create_tray_icon, enable_windows_acrylic, log
-from .ui_components import GlassCard
+from PyQt6.QtWidgets import (
+    QWidget, QVBoxLayout, QTabWidget, QInputDialog, QToolButton, QTabBar,
+    QLabel, QSizePolicy, QSpacerItem, QDialog, QFormLayout, QComboBox,
+    QCheckBox, QPushButton, QHBoxLayout
+)
 
+from TrayWeatherApp.config_utils import set_sun_icon, create_tray_icon, enable_windows_acrylic, log
+from TrayWeatherApp.ui_components import GlassCard
 
 # ---------- Weather Window ----------
 class WeatherWindow(QWidget):
@@ -50,7 +53,6 @@ class WeatherWindow(QWidget):
         self.setAutoFillBackground(False)
 
     def apply_theme_to_credit(self):
-        from PyQt6.QtCore import Qt
 
         # Rich text + external links
         self.credit_lbl.setTextFormat(Qt.TextFormat.RichText)
@@ -302,7 +304,6 @@ class WeatherWindow(QWidget):
             except RuntimeError as e:
                 log(f"Ignored scaling for deleted card {city}: {e}", "DEBUG")
                 continue
-
 
 # ---------- Settings Dialog ----------
 class SettingsDialog(QDialog):

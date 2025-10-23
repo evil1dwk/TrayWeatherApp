@@ -1,7 +1,10 @@
-import re, zipfile, json, io, colorsys
-from PyQt6.QtWidgets import QApplication
+# TrayWeatherApp module: theme.py
+
 from PyQt6.QtGui import QColor, QPalette
-from .config_utils import THEMES_DIR
+from PyQt6.QtWidgets import QApplication
+from TrayWeatherApp.config_utils import THEMES_DIR
+import re, zipfile, json, io, colorsys
+
 
 # ---------- Theme Manager ----------
 class ThemeManager:

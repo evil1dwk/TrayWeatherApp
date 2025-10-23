@@ -1,7 +1,10 @@
-from PyQt6.QtCore import QObject, pyqtSignal
+# TrayWeatherApp module: workers.py
+
 from datetime import datetime, timezone, timedelta
+from PyQt6.QtCore import QObject, pyqtSignal
+from TrayWeatherApp.config_utils import log
 import requests
-from .config_utils import log
+
 
 # ---------- Weather Window ----------
 class WeatherWorker(QObject):

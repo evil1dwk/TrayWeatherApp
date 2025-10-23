@@ -1,28 +1,19 @@
+# TrayWeatherApp module: config_utils.py
 
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-TrayWeatherApp ☀️  (Open-Meteo) — Themeable Single File
-------------------------------------------------
-• Themes are ZIP files in ./themes, each containing a .css and a .json
-• Themes are loaded in-memory (no unzip to disk)
-• No hardcoded UI colors: colors & QSS come from the theme JSON/CSS
-• Dark gradient background, glass cards, custom tabs preserved
-• City order and removal saved on exit
-• Live local time + weather emoji
-• Safe threading, no crashes
-"""
-import sys, json, requests, traceback, platform, ctypes, zipfile, io, re
-from pathlib import Path
+from datetime import datetime
 from datetime import datetime, timezone, timedelta
+from pathlib import Path
+from pathlib import Path
 from PyQt6.QtCore import Qt, QTimer, QThread, pyqtSignal, QObject
 from PyQt6.QtGui import QIcon, QPixmap, QFont, QPainter, QLinearGradient, QColor
-from PyQt6.QtWidgets import (
+from PyQt6.QtWidgets import (    
     QApplication, QWidget, QLabel, QVBoxLayout, QHBoxLayout, QTabWidget,
     QSystemTrayIcon, QMenu, QDialog, QFormLayout, QPushButton,
     QComboBox, QInputDialog, QCheckBox, QSpacerItem, QSizePolicy,
     QGraphicsDropShadowEffect, QTabBar, QToolButton
 )
+import json
+import sys, json, requests, traceback, platform, ctypes, zipfile, io, re
 
 # ---------- Paths ----------
 def get_base_path() -> Path:
@@ -40,7 +31,6 @@ LOG_PATH = Path.home() / ".TrayWeatherApp" / "pyqt_tray_weather.log"
 CONFIG_PATH.parent.mkdir(parents=True, exist_ok=True)
 THEMES_DIR.mkdir(parents=True, exist_ok=True)
 
-
 CONFIG_PATH.parent.mkdir(parents=True, exist_ok=True)
 THEMES_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -54,8 +44,6 @@ DEFAULT_CONFIG = {
     "theme": "Dark" 
 }
 
-import json
-from pathlib import Path
 
 CONFIG_PATH = Path.home() / ".TrayWeatherApp" / "pyqt_tray_weather.json"
 CONFIG_PATH.parent.mkdir(parents=True, exist_ok=True)
@@ -80,7 +68,6 @@ def save_config(cfg: dict):
     try:
         CONFIG_PATH.write_text(json.dumps(cfg, indent=2), encoding="utf-8")
     except Exception as e:
-        from datetime import datetime
         with open(Path.home() / ".TrayWeatherApp" / "pyqt_tray_weather.log", "a", encoding="utf-8") as f:
             f.write(f"[{datetime.now():%Y-%m-%d %H:%M:%S}] [ERROR] Failed to save config: {e}\n")
 

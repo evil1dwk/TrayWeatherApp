@@ -1,15 +1,17 @@
-from PyQt6.QtWidgets import (
-    QWidget, QVBoxLayout, QTabWidget, QInputDialog, QToolButton, QTabBar,
-    QLabel, QSizePolicy, QSpacerItem, QDialog, QFormLayout, QComboBox,
-    QCheckBox, QPushButton, QHBoxLayout
-)
+# TrayWeatherApp module: settings.py
+
+from datetime import datetime, timezone, timedelta
 from PyQt6.QtCore import Qt, QTimer
 from PyQt6.QtGui import (
     QPixmap, QFont, QIcon, QPainter, QLinearGradient, QColor,
     QPainterPath
 )
-from datetime import datetime, timezone, timedelta
-from .config_utils import set_sun_icon, create_tray_icon, enable_windows_acrylic, log
+from PyQt6.QtWidgets import (
+    QWidget, QVBoxLayout, QTabWidget, QInputDialog, QToolButton, QTabBar,
+    QLabel, QSizePolicy, QSpacerItem, QDialog, QFormLayout, QComboBox,
+    QCheckBox, QPushButton, QHBoxLayout
+)
+from TrayWeatherApp.config_utils import set_sun_icon, create_tray_icon, enable_windows_acrylic, log
 
 # ---------- Settings Dialog ----------
 class SettingsDialog(QDialog):

@@ -1,14 +1,17 @@
-import sys, io, json
-from PyQt6.QtWidgets import QApplication, QSystemTrayIcon, QMenu
-from PyQt6.QtCore import QTimer, QThread
-from .config_utils import log, load_config, save_config, CONFIG_PATH, THEMES_DIR, DEFAULT_CONFIG, zipfile, create_tray_icon
-from datetime import datetime, timezone, timedelta
+# TrayWeatherApp module: app.py
 
-from .theme import ThemeManager
-from .config_utils import log, load_config, save_config
-from .weather import WeatherWindow
-from .settings import SettingsDialog
-from .workers import WeatherWorker
+from datetime import datetime, timezone, timedelta
+from PyQt6.QtCore import QTimer, QThread
+from PyQt6.QtWidgets import QApplication, QSystemTrayIcon, QMenu
+from TrayWeatherApp.config_utils import log, load_config, save_config
+from TrayWeatherApp.config_utils import log, load_config, save_config, CONFIG_PATH, THEMES_DIR, DEFAULT_CONFIG, zipfile, create_tray_icon
+from TrayWeatherApp.settings import SettingsDialog
+from TrayWeatherApp.theme import ThemeManager
+from TrayWeatherApp.weather import WeatherWindow
+from TrayWeatherApp.workers import WeatherWorker
+import sys, io, json
+
+
 
 # ---------- Main App ----------
 class TrayWeatherApp:

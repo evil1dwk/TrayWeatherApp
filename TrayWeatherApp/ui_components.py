@@ -1,3 +1,7 @@
+# TrayWeatherApp module: ui_components.py
+
+from PyQt6.QtCore import Qt, QRectF
+from PyQt6.QtGui import QFont, QColor, QPainter, QPainterPath, QPen
 from PyQt6.QtWidgets import (
     QWidget,
     QDialog,
@@ -11,11 +15,10 @@ from PyQt6.QtWidgets import (
     QSizePolicy,
     QSpacerItem
 )
-from PyQt6.QtGui import QFont, QColor, QPainter, QPainterPath, QPen
 from PyQt6.QtWidgets import QGraphicsDropShadowEffect
-from PyQt6.QtCore import Qt, QRectF
-from .theme import ThemeManager
-from .config_utils import log, set_sun_icon, enable_windows_acrylic
+from TrayWeatherApp.config_utils import log, set_sun_icon, enable_windows_acrylic
+from TrayWeatherApp.theme import ThemeManager
+
 
 # ---------- Glass Card ----------
 class GlassCard(QWidget):
