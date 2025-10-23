@@ -100,7 +100,7 @@ C:\Projects\TrayWeatherApp\
 │
 ├── release\                     
 │   └── windows\
-│       └── TrayWeatherApp-Install.exe  ← rebuilt Windows installer
+│       └── TrayWeatherApp-Install.exe  ← prebuilt Windows installer
 │
 └── TrayWeatherApp\                ← Python source package
     ├── main.py
