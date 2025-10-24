@@ -39,7 +39,7 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
 [Files]
-Source: "C:\Projects\TrayWeatherApp\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\Projects\TrayWeatherApp\releases\windows\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\Projects\TrayWeatherApp\themes\*"; DestDir: "{app}\themes\"; Flags: ignoreversion recursesubdirs createallsubdirs
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
