@@ -6,13 +6,10 @@ import shutil
 import subprocess
 import sys
 
-
 # ------------------------------------------------------------
 # Utility functions
 # ------------------------------------------------------------
-
 def load_config(path):
-    """Load and validate the JSON configuration."""
     if not os.path.exists(path):
         print(f"❌ Config file not found: {path}")
         sys.exit(1)
@@ -23,11 +20,9 @@ def load_config(path):
         sys.exit(1)
     return config
 
-
 def expand_placeholders_recursive(value, config, depth=0):
-    """Recursively expand placeholders like $AppName or $Icon in strings, lists, and dicts."""
     if depth > 10:
-        return value  # Prevent recursion loops
+        return value
 
     if isinstance(value, str):
         changed = True
@@ -49,20 +44,16 @@ def expand_placeholders_recursive(value, config, depth=0):
     else:
         return value
 
-
 # ------------------------------------------------------------
-# Safe cleanup utilities
+# Cleanup utilities
 # ------------------------------------------------------------
 
 def remove_folder(folder_path):
-    """Delete a folder if it exists."""
     if os.path.exists(folder_path):
         shutil.rmtree(folder_path, ignore_errors=True)
         print(f"🧹 Removed folder: {folder_path}")
 
-
 def remove_pycache_folders(base_dir):
-    """Recursively remove all __pycache__ folders under base_dir."""
     for root, dirs, _ in os.walk(base_dir):
         for d in dirs:
             if d == "__pycache__":
@@ -70,42 +61,29 @@ def remove_pycache_folders(base_dir):
                 shutil.rmtree(folder, ignore_errors=True)
                 print(f"🧹 Removed folder: {folder}")
 
-
 def remove_spec_files(base_dir):
-    """Recursively remove .spec files under base_dir."""
     for root, _, files in os.walk(base_dir):
         for f in files:
             if f.endswith(".spec"):
                 os.remove(os.path.join(root, f))
                 print(f"🧹 Removed file: {os.path.join(root, f)}")
 
-
 def clean_build_artifacts(app_dir):
-    """
-    Remove build/, dist/, __pycache__, and .spec files
-    inside the application directory ONLY (never touches project root).
-    """
-    print("\n🧹 Performing post-build cleanup (safe mode)...\n")
+    print("\n🧹 Performing post-build cleanup...\n")
 
-    # Remove build/dist folders inside the application folder
     for path in ["build", "dist"]:
         remove_folder(os.path.join(app_dir, path))
 
-    # Remove .spec files in the app folder
     remove_spec_files(app_dir)
 
-    # Remove __pycache__ folders inside the app folder
     remove_pycache_folders(app_dir)
 
-    print("✅ Post-build cleanup complete (root untouched).\n")
-
+    print("✅ Post-build cleanup complete.\n")
 
 # ------------------------------------------------------------
 # Build helpers
 # ------------------------------------------------------------
-
 def run_pyinstaller(app_name, py_args, app_dir, project_root, icon_path=None, verbose=False):
-    """Run PyInstaller from app directory, with optional verbose output."""
     print(f"🚀 Building {app_name} with PyInstaller from {app_dir}\n")
 
     if icon_path:
@@ -114,7 +92,6 @@ def run_pyinstaller(app_name, py_args, app_dir, project_root, icon_path=None, ve
             print(f"❌ Icon not found: {icon_full}")
             sys.exit(1)
 
-        # Replace --icon argument with the correct full path
         new_args = []
         skip_next = False
         for arg in py_args:
@@ -150,9 +127,7 @@ def run_pyinstaller(app_name, py_args, app_dir, project_root, icon_path=None, ve
             print("💡 Tip: Run with --verbose to see full PyInstaller output.")
         sys.exit(e.returncode)
 
-
 def update_inno_setup_version(iss_path, version):
-    """Update #define MyAppVersion in the .iss file."""
     print(f"⚙️ Updating version in Inno Setup script: {iss_path}")
     with open(iss_path, "r", encoding="utf-8") as f:
         lines = f.readlines()
@@ -170,9 +145,7 @@ def update_inno_setup_version(iss_path, version):
         f.writelines(lines)
     print(f"✅ Updated version to {version}\n")
 
-
 def run_inno_setup(app_name, version, project_root, verbose=False):
-    """Run Inno Setup silently or verbose, move installer, delete standalone exe."""
     iss_path = os.path.join(project_root, "build", "windows", f"{app_name}.iss")
     if not os.path.exists(iss_path):
         print(f"ℹ️ No Inno Setup script found at {iss_path}. Skipping installer build.\n")
@@ -190,7 +163,6 @@ def run_inno_setup(app_name, version, project_root, verbose=False):
         )
         print("✅ Inno Setup installer built successfully.\n")
 
-        # Move setup.exe to project root
         output_dir = os.path.dirname(iss_path)
         setup_exe = None
         for file in os.listdir(output_dir):
@@ -203,7 +175,6 @@ def run_inno_setup(app_name, version, project_root, verbose=False):
             shutil.move(setup_exe, dest_exe)
             print(f"📦 Moved installer to project root: {dest_exe}")
 
-        # Always delete standalone PyInstaller exe after Inno completes
         standalone_exe = os.path.join(project_root, f"{app_name}.exe")
         if os.path.exists(standalone_exe):
             os.remove(standalone_exe)
@@ -215,7 +186,6 @@ def run_inno_setup(app_name, version, project_root, verbose=False):
         print(f"❌ Inno Setup failed with exit code {e.returncode}")
         if not verbose:
             print("💡 Tip: Run with --verbose to see full Inno Setup output.")
-
 
 # ------------------------------------------------------------
 # Main entry point
@@ -234,7 +204,6 @@ def main():
     )
     args = parser.parse_args()
 
-    # Load and expand placeholders fully
     config_raw = load_config(args.config)
     config = expand_placeholders_recursive(config_raw, config_raw)
 
@@ -250,13 +219,10 @@ def main():
         print(f"❌ Application directory not found: {app_dir}")
         sys.exit(1)
 
-    # Run build steps
     run_pyinstaller(app_name, py_args, app_dir, project_root, icon_path, args.verbose)
     run_inno_setup(app_name, version, project_root, args.verbose)
 
-    # Final cleanup
     clean_build_artifacts(app_dir)
-
 
 if __name__ == "__main__":
     main()
