@@ -6,9 +6,7 @@ import shutil
 import subprocess
 import sys
 
-# ------------------------------------------------------------
-# Utility functions
-# ------------------------------------------------------------
+# ---------- Read the build.json ----------
 def load_config(path):
     if not os.path.exists(path):
         print(f"❌ Config file not found: {path}")
@@ -44,10 +42,7 @@ def expand_placeholders_recursive(value, config, depth=0):
     else:
         return value
 
-# ------------------------------------------------------------
-# Cleanup utilities
-# ------------------------------------------------------------
-
+# ---------- Cleanup utilities ----------
 def remove_folder(folder_path):
     if os.path.exists(folder_path):
         shutil.rmtree(folder_path, ignore_errors=True)
@@ -80,9 +75,7 @@ def clean_build_artifacts(app_dir):
 
     print("✅ Post-build cleanup complete.\n")
 
-# ------------------------------------------------------------
-# Build helpers
-# ------------------------------------------------------------
+# ---------- Builders ----------
 def run_pyinstaller(app_name, py_args, app_dir, project_root, icon_path=None, verbose=False):
     print(f"🚀 Building {app_name} with PyInstaller from {app_dir}\n")
 
@@ -187,9 +180,7 @@ def run_inno_setup(app_name, version, project_root, verbose=False):
         if not verbose:
             print("💡 Tip: Run with --verbose to see full Inno Setup output.")
 
-# ------------------------------------------------------------
-# Main entry point
-# ------------------------------------------------------------
+# ---------- Main Entry ----------
 def main():
     parser = argparse.ArgumentParser(description="Build an app using PyInstaller and optionally Inno Setup.")
     parser.add_argument(
