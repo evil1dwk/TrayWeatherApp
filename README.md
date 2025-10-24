@@ -24,7 +24,7 @@ TrayWeatherApp provides real-time weather updates, quick forecasts, and customiz
 ```
 TrayWeatherApp/
 ├── build.py                 # Python build automation script
-├── build.ps1                # PowerShell build script (legacy)
+├── build.json               # build configuration file
 │
 ├── TrayWeatherApp/
 │   ├── __init__.py
