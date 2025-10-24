@@ -21,7 +21,6 @@ def load_config(path):
 def expand_placeholders_recursive(value, config, depth=0):
     if depth > 10:
         return value
-
     if isinstance(value, str):
         changed = True
         result = value
@@ -32,15 +31,32 @@ def expand_placeholders_recursive(value, config, depth=0):
                     result = result.replace(f"${k}", v)
                     changed = True
         return result
-
     elif isinstance(value, list):
         return [expand_placeholders_recursive(v, config, depth + 1) for v in value]
-
     elif isinstance(value, dict):
         return {k: expand_placeholders_recursive(v, config, depth + 1) for k, v in value.items()}
-
     else:
         return value
+
+# ---------- Fix for PyInstaller add-data paths ----------
+def fix_add_data_paths(py_args):
+    fixed_args = []
+    i = 0
+    while i < len(py_args):
+        arg = py_args[i]
+        if arg == "--add-data" and i + 1 < len(py_args):
+            val = py_args[i + 1]
+            if os.name == "nt":
+                val = val.replace(":", ";")
+                fixed_args.append(f"--add-data={val}")
+            else:
+                val = val.replace(";", ":")
+                fixed_args.append(f"--add-data={val}")
+            i += 2
+        else:
+            fixed_args.append(arg)
+            i += 1
+    return fixed_args
 
 # ---------- Cleanup utilities ----------
 def remove_folder(folder_path):
@@ -64,27 +80,24 @@ def remove_spec_files(base_dir):
                 print(f"🧹 Removed file: {os.path.join(root, f)}")
 
 def clean_build_artifacts(app_dir):
-    print("\n🧹 Performing post-build cleanup...\n")
-
+    print("🧹 Performing post-build cleanup...")
     for path in ["build", "dist"]:
         remove_folder(os.path.join(app_dir, path))
-
     remove_spec_files(app_dir)
-
     remove_pycache_folders(app_dir)
-
-    print("✅ Post-build cleanup complete.\n")
+    print("✅ Post-build cleanup complete.")
 
 # ---------- Builders ----------
 def run_pyinstaller(app_name, py_args, app_dir, project_root, icon_path=None, verbose=False):
-    print(f"🚀 Building {app_name} with PyInstaller from {app_dir}\n")
+    print(f"🚀 Building {app_name} with PyInstaller from {app_dir}")
+    release_dir = os.path.join(project_root, "releases", "windows" if os.name == "nt" else "linux")
+    os.makedirs(release_dir, exist_ok=True)
 
     if icon_path:
         icon_full = os.path.join(project_root, os.path.basename(icon_path))
         if not os.path.exists(icon_full):
             print(f"❌ Icon not found: {icon_full}")
             sys.exit(1)
-
         new_args = []
         skip_next = False
         for arg in py_args:
@@ -99,9 +112,8 @@ def run_pyinstaller(app_name, py_args, app_dir, project_root, icon_path=None, ve
         py_args = new_args
         print(f"💡 Using project root icon: {icon_full}")
 
-    command = ["pyinstaller"] + py_args + ["--distpath", ".", "--workpath", "build"]
+    command = ["pyinstaller"] + py_args + ["--distpath", release_dir, "--workpath", "build"]
     print(f"⚙️ Running PyInstaller... {'(verbose)' if verbose else '(silent)'}")
-
     try:
         subprocess.run(
             command,
@@ -110,10 +122,7 @@ def run_pyinstaller(app_name, py_args, app_dir, project_root, icon_path=None, ve
             stdout=None if verbose else subprocess.DEVNULL,
             stderr=None if verbose else subprocess.DEVNULL
         )
-        exe_path = os.path.join(app_dir, f"{app_name}.exe")
-        if os.path.exists(exe_path):
-            shutil.move(exe_path, project_root)
-        print(f"✅ PyInstaller build complete: .\\{app_name}.exe\n")
+        print(f"✅ PyInstaller build complete: {release_dir}/{app_name}.exe")
     except subprocess.CalledProcessError as e:
         print(f"❌ PyInstaller failed with exit code {e.returncode}")
         if not verbose:
@@ -124,7 +133,6 @@ def update_inno_setup_version(iss_path, version):
     print(f"⚙️ Updating version in Inno Setup script: {iss_path}")
     with open(iss_path, "r", encoding="utf-8") as f:
         lines = f.readlines()
-
     updated = False
     for i, line in enumerate(lines):
         if line.strip().startswith("#define MyAppVersion"):
@@ -133,46 +141,31 @@ def update_inno_setup_version(iss_path, version):
             break
     if not updated:
         lines.insert(0, f'#define MyAppVersion "{version}"\n')
-
     with open(iss_path, "w", encoding="utf-8") as f:
         f.writelines(lines)
-    print(f"✅ Updated version to {version}\n")
+    print(f"✅ Updated version to {version}")
 
 def run_inno_setup(app_name, version, project_root, verbose=False):
+    release_dir = os.path.join(project_root, "releases", "windows")
     iss_path = os.path.join(project_root, "build", "windows", f"{app_name}.iss")
     if not os.path.exists(iss_path):
-        print(f"ℹ️ No Inno Setup script found at {iss_path}. Skipping installer build.\n")
+        print(f"ℹ️ No Inno Setup script found at {iss_path}. Skipping installer build.")
         return
 
     update_inno_setup_version(iss_path, version)
     print(f"📦 Running Inno Setup Compiler... {'(verbose)' if verbose else '(silent)'}")
-
     try:
         subprocess.run(
-            ["iscc", iss_path],
+            ["iscc", f"/O{release_dir}", iss_path],
             check=True,
             stdout=None if verbose else subprocess.DEVNULL,
             stderr=None if verbose else subprocess.DEVNULL
         )
-        print("✅ Inno Setup installer built successfully.\n")
-
-        output_dir = os.path.dirname(iss_path)
-        setup_exe = None
-        for file in os.listdir(output_dir):
-            if file.lower().endswith(".exe") and "setup" in file.lower():
-                setup_exe = os.path.join(output_dir, file)
-                break
-
-        if setup_exe and os.path.exists(setup_exe):
-            dest_exe = os.path.join(project_root, os.path.basename(setup_exe))
-            shutil.move(setup_exe, dest_exe)
-            print(f"📦 Moved installer to project root: {dest_exe}")
-
-        standalone_exe = os.path.join(project_root, f"{app_name}.exe")
+        print("✅ Inno Setup installer built successfully.")
+        standalone_exe = os.path.join(release_dir, f"{app_name}.exe")
         if os.path.exists(standalone_exe):
             os.remove(standalone_exe)
             print(f"🗑️ Deleted standalone executable: {standalone_exe}")
-
     except FileNotFoundError:
         print("⚠️ iscc.exe not found. Please ensure Inno Setup is installed and in PATH.")
     except subprocess.CalledProcessError as e:
@@ -183,35 +176,36 @@ def run_inno_setup(app_name, version, project_root, verbose=False):
 # ---------- Main Entry ----------
 def main():
     parser = argparse.ArgumentParser(description="Build an app using PyInstaller and optionally Inno Setup.")
-    parser.add_argument(
-        "-c", "--config",
-        default="build.json",
-        help="Path to JSON config file (default: build.json)"
-    )
-    parser.add_argument(
-        "--verbose",
-        action="store_true",
-        help="Show full PyInstaller and Inno Setup output"
-    )
+    parser.add_argument("-c", "--config", default=None, help="Path to JSON config file (default depends on OS)")
+    parser.add_argument("--verbose", action="store_true", help="Show full PyInstaller and Inno Setup output")
     args = parser.parse_args()
 
-    config_raw = load_config(args.config)
+    if args.config:
+        config_path = args.config
+    else:
+        config_path = os.path.join("build", "windows" if os.name == "nt" else "linux", "build.json")
+
+    print(f"📄 Using config: {config_path}")
+    config_raw = load_config(config_path)
     config = expand_placeholders_recursive(config_raw, config_raw)
 
     app_name = config["AppName"]
     version = config.get("Version", "1.0.0.0")
     icon_path = config.get("Icon")
-    py_args = config["pyinstaller"]
+    py_args = fix_add_data_paths(config["pyinstaller"])
 
     project_root = os.getcwd()
     app_dir = os.path.join(project_root, app_name)
-
     if not os.path.exists(app_dir):
         print(f"❌ Application directory not found: {app_dir}")
         sys.exit(1)
 
     run_pyinstaller(app_name, py_args, app_dir, project_root, icon_path, args.verbose)
-    run_inno_setup(app_name, version, project_root, args.verbose)
+
+    if os.name == "nt":
+        run_inno_setup(app_name, version, project_root, args.verbose)
+    else:
+        print("💡 Skipping Inno Setup — only runs on Windows.")
 
     clean_build_artifacts(app_dir)
 

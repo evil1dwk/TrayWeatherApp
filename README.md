@@ -1,7 +1,7 @@
 # 🌦️ TrayWeatherApp
 
-A lightweight **system tray weather monitor** for Windows built with **Python 3.11+** and **PyQt6**.  
-TrayWeatherApp provides real-time weather updates, quick forecasts, and customizable themes — all from your Windows tray.
+A lightweight **system tray weather monitor** for Windows and Linux built with **Python 3.11+** and **PyQt6**.  
+TrayWeatherApp provides real-time weather updates, quick forecasts, and customizable themes — all from your system tray.
 
 ---
 
@@ -16,6 +16,7 @@ TrayWeatherApp provides real-time weather updates, quick forecasts, and customiz
   - *Switch Theme*
   - *Quit*
 - 💾 **Local configuration** saved under your user profile
+- 🖥️ **Cross-platform support** — works on both Windows and Linux
 
 ---
 
@@ -23,34 +24,35 @@ TrayWeatherApp provides real-time weather updates, quick forecasts, and customiz
 
 ```
 TrayWeatherApp/
-├── build.py                 # Python build automation script
-├── build.json               # build configuration file
+├── build.py                       # cross-platform build automation script
+├── build/
+│   ├── windows/
+│   │   ├── build.json              # Windows build configuration
+│   │   └── TrayWeatherApp.iss      # optional Inno Setup installer script
+│   └── linux/
+│       └── build.json              # Linux build configuration
+│
+├── releases/
+│   ├── windows/                    # built executables (Windows)
+│   └── linux/                      # built executables (Linux)
 │
 ├── TrayWeatherApp/
 │   ├── __init__.py
-│   ├── main.py              # main entry point (used by PyInstaller)
-│   ├── app.py               # QApplication + system tray logic
-│   ├── weather_api.py       # handles API requests and responses
-│   ├── theme.py             # handles theme management
-│   ├── config_utils.py      # configuration file management
-│   ├── windows.py           # UI logic and window behavior
-│   └── icons/               # weather and UI icons
+│   ├── main.py                     # main entry point (used by PyInstaller)
+│   ├── app.py                      # QApplication + system tray logic
+│   ├── weather_api.py              # handles API requests and responses
+│   ├── theme.py                    # theme management
+│   ├── config_utils.py             # configuration management
+│   ├── windows.py                  # UI logic and window behavior
+│   └── icons/                      # weather and UI icons
 │
-├── build/
-│   └── windows/
-│       └── TrayWeatherApp.iss    # Inno Setup installer script
-│
-├── release/
-│   └── windows/
-│       └── TrayWeatherApp-Install.exe  # optional prebuilt installer
-│
-├── themes/                  # optional external theme files
+├── themes/                         # optional external theme files
 │   ├── Dark.zip
 │   ├── Light.zip
 │   └── Beach.zip
 │
-├── TrayWeatherApp.ico       # app icon
-├── requirements.txt         # dependency list
+├── TrayWeatherApp.ico              # app icon
+├── requirements.txt                # dependency list
 └── README.md
 ```
 
@@ -72,38 +74,41 @@ pip install -r requirements.txt
 
 ## ▶️ Running in Development
 
-Run directly from source (development mode):
+Run directly from source:
 
-**Option 1 (recommended):**
 ```bash
 python -m TrayWeatherApp
 ```
-
-**Option 2:**
+or
 ```bash
 python TrayWeatherApp/main.py
 ```
 
 ---
 
-## 🧰 Building the Executable (Windows)
+## 🧰 Building the Executable (Cross-Platform)
 
-To package **TrayWeatherApp** into a standalone Windows EXE, use the `build.py` script.
+To package **TrayWeatherApp** into a standalone executable, use the `build.py` script.
 
 ### Prerequisites
-- Python 3.10+
-- PyInstaller (installed from `requirements.txt`)
-- (Optional) Inno Setup for building an installer:
 
-  👉 [Download Inno Setup](https://jrsoftware.org/isinfo.php)
+- Python 3.10+  
+- PyInstaller (installed via `requirements.txt`)  
+- *(Windows only)* Inno Setup for building an installer:  
+  [Download Inno Setup](https://jrsoftware.org/isinfo.php)
 
-If Inno Setup isn’t installed, `build.py` will still produce a standalone EXE file.
+If Inno Setup isn’t installed, a standalone executable will still be created.
 
 ---
 
-## 🧩 Build JSON: `build.json`
+## 🧩 Build Config Files
 
-The `build.json` defines how your EXE is packaged with PyInstaller:
+There are now **platform-specific** build configuration files:
+
+- **Windows:** `build/windows/build.json`
+- **Linux:** `build/linux/build.json`
+
+Example `build.json`:
 
 ```json
 {
@@ -114,7 +119,7 @@ The `build.json` defines how your EXE is packaged with PyInstaller:
     "--noconfirm",
     "--onefile",
     "--windowed",
-    "--add-data", "$AppName\\icons;icons",
+    "--add-data", "$AppName/icons;icons",
     "--name", "$AppName",
     "--icon", "$Icon",
     "main.py"
@@ -126,7 +131,7 @@ The `build.json` defines how your EXE is packaged with PyInstaller:
 
 ## 🛠️ Build Script: `build.py`
 
-Automates the full build and packaging process.
+Automates the entire build and packaging process.
 
 Run this from the project root:
 ```bash
@@ -134,29 +139,35 @@ python build.py
 ```
 
 ### 🧾 What It Does
-1. Reads `build.json` and expands `$AppName` and `$Icon` placeholders  
-2. Runs **PyInstaller** with the provided arguments  
-3. Moves the built EXE to the project root  
-4. Runs **Inno Setup** (if available):  
+
+1. Detects your OS and loads the proper build configuration file:  
+   - `build/windows/build.json` on Windows  
+   - `build/linux/build.json` on Linux  
+2. Runs **PyInstaller** with the specified parameters.  
+3. Outputs the executable to:  
+   - `releases/windows/` on Windows  
+   - `releases/linux/` on Linux  
+4. *(Windows only)* Runs **Inno Setup** if available:  
    ```
    build\windows\TrayWeatherApp.iss
-   ```
+   ```  
 5. If Inno Setup completes successfully:  
-   - Deletes the standalone EXE file from the root  
-   - Moves the generated installer to the root  
-6. If Inno Setup fails or isn’t found, the standalone EXE remains  
-7. Performs post-build cleanup — removes:
-   - `build/`
-   - `dist/`
-   - `.spec` files
-   - `__pycache__/`
+   - Deletes the standalone executable from `releases/windows`  
+   - Keeps only the generated installer there  
+6. If Inno Setup fails or isn’t found, the standalone executable remains in `releases/windows`.  
+7. Performs post-build cleanup — removes:  
+   - `build/`  
+   - `dist/`  
+   - `.spec` files  
+   - `__pycache__/` folders
 
 ✅ **Notes**
-- The final installer or EXE appears in your **project root**
-- No root-level folders (like `.venv` or `build/`) are ever deleted
-- Logs and configuration are stored in:
+- The final installer or executable appears in the **`releases/<os>/`** folder.  
+- No project root folders are ever deleted.  
+- Configuration and logs are stored in:  
   ```
-  C:\Users\<YourName>\.TrayWeatherApp\
+  C:\Users\<YourName>\.TrayWeatherApp\  (Windows)
+  ~/.TrayWeatherApp/                       (Linux)
   ```
 
 ---
@@ -166,38 +177,29 @@ python build.py
 TrayWeatherApp saves user settings in a JSON file:
 ```json
 {
-  "cities": [
-    "New York"
-  ],
+  "cities": ["New York"],
   "units": "imperial",
-  "window_pos": [
-    722,
-    575
-  ],
-  "window_size": [
-    1195,
-    425
-  ],
+  "window_pos": [722, 575],
+  "window_size": [1195, 425],
   "debug": false,
   "time_format_24h": false,
   "theme": "Dark"
 }
 ```
-
-You can safely delete this file to reset the app’s settings.
+You can delete this file to reset settings.
 
 ---
 
 ## 💡 Building Tips
 
-- Always run the build command from the **project root**
-- Ensure your `.ico` file exists in the root (e.g., `TrayWeatherApp.ico`)
+- Always run `python build.py` from the **project root**
+- Ensure the `.ico` file exists in the root (e.g., `TrayWeatherApp.ico`)
 - Keep your theme files outside the executable for easy swapping
-- If debugging build issues, run:
+- To debug build issues:
   ```bash
   python build.py --verbose
   ```
-- You can modify `build.json` to add extra PyInstaller options as needed
+- You can modify `build.json` to add or adjust PyInstaller options
 
 ---
 
@@ -206,7 +208,7 @@ You can safely delete this file to reset the app’s settings.
 | Action | Command |
 |--------|----------|
 | 🧪 Run app from source | `python -m TrayWeatherApp` |
-| 🏗️ Build standalone EXE | `python build.py` |
+| 🏗️ Build standalone executable | `python build.py` |
 | 🧱 Build with full logs | `python build.py --verbose` |
-| 💾 Output | EXE or installer saved in project root |
-| 🧹 Cleanup | Automatic (safe mode, no root deletion) |
+| 💾 Output | `releases/<os>/` (windows or linux) |
+| 🧹 Cleanup | Automatic, safe (no root deletion) |
