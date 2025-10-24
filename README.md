@@ -166,13 +166,21 @@ python build.py
 TrayWeatherApp saves user settings in a JSON file:
 ```json
 {
-  "cities": ["New York"],
+  "cities": [
+    "New York"
+  ],
   "units": "imperial",
-  "theme": "Carbon Fiber",
-  "window_pos": [800, 600],
-  "window_size": [1200, 500],
+  "window_pos": [
+    722,
+    575
+  ],
+  "window_size": [
+    1195,
+    425
+  ],
+  "debug": false,
   "time_format_24h": false,
-  "debug": false
+  "theme": "Dark"
 }
 ```
 
