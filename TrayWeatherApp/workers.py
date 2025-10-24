@@ -4,7 +4,7 @@ from PyQt6.QtCore import QObject, pyqtSignal
 from TrayWeatherApp.config_utils import log
 import requests
 
-# ---------- Weather Window ----------
+# ---------- Weather Worker ----------
 class WeatherWorker(QObject):
     finished = pyqtSignal(str, object)
     error = pyqtSignal(str, str)
