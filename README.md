@@ -37,7 +37,7 @@ Themes should be located in the `themes/` folder beside your project root.
 
 ## Building the Executable (Windows)
 
-To package TrayWeatherApp into a standalone Windows EXE, use the PowerShell build script.
+To package TrayWeatherApp into a standalone Windows EXE, use the `build.py` build script.
 
 ### Prerequisites
 - Python 3.10+
@@ -48,31 +48,45 @@ To package TrayWeatherApp into a standalone Windows EXE, use the PowerShell buil
 
   If Inno Setup is not installed a standalone exe file will be created.
 
-## Build Script: `build.ps1`
-The `build.ps1` script automates the entire packaging process.
+## Build JSON: `build.json`
+The `build.json` contains the information used to package the EXE file with `pyinstaller`
 
-Run this from **PowerShell** at the project root:
-```powershell
-.\build.ps1 -AppName TrayWeatherApp
+```json
+{
+  "AppName": "TrayWeatherApp",
+  "Version": "2.1.4",
+  "Icon": "$AppName.ico",
+  "pyinstaller": [
+    "--noconfirm",
+    "--onefile",
+    "--windowed",
+    "--name", "$AppName",
+    "--icon", "$Icon",
+    "main.py"
+  ]
+}
+```
+
+## Build Script: `build.py`
+The `build.py` script automates the entire packaging process.
+
+Run this from the command line at the project root:
+```console
+python build.py
 ```
 
 ### What It Does
-1. Automatically detects your project paths.
-2. Cleans old `build/`, `dist/`, `.spec`, and `__pycache__` folders.
-3. Runs PyInstaller to generate a single-file executable:
-   ```powershell
-   pyinstaller --noconfirm --onefile --windowed --name TrayWeatherApp --icon ..\TrayWeatherApp.ico main.py
-   ```
+1. It looks for the build.json file and executes `pyinstaller` with parameters in this file
 4. Moves the built EXE to the project root.
 5. Runs Inno Setup from:
    ```
    build\windows\TrayWeatherApp.iss
    ```
 6. If Inno Setup completes successfully:
-   - Displays the full installer EXE path.
-   - Deletes the standalone EXE from the root folder.
+   - Deletes the standalone EXE file from the root folder.
+   - Moves the installation EXE to the root folder.
 7. If Inno Setup fails or is skipped, the standalone EXE remains in the project root.
-
+8. Cleans `build/`, `dist/`, `.spec`, and `__pycache__` folders from the application folder.
 
 ## Folder Layout
 ```
