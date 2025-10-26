@@ -2,6 +2,8 @@
 
 A lightweight **system tray weather monitor** for Windows and Linux built with **Python 3.11+** and **PyQt6**.  
 TrayWeatherApp provides real-time weather updates, quick forecasts, and customizable themes — all from your system tray.
+![forest](screenshots/Light.jpg)
+![forest](screenshots/Dark.jpg)
 
 ---
 
