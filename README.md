@@ -146,7 +146,7 @@ view size.
 
 ## Temperature in the tray
 
-The tray icon displays the rounded temperature for the **leftmost city tab**.
+The tray icon displays the weather emoji above the rounded temperature for the **leftmost city tab**.
 Drag city tabs to choose which city supplies it. The tooltip shows the full
 location, temperature with units, conditions, and update status. Cached readings
 remain visible offline, with stale/error status in the tooltip. An em dash means

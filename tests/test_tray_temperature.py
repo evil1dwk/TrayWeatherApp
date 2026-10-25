@@ -31,18 +31,25 @@ class TrayTemperatureTests(unittest.TestCase):
         window=WeatherWindow(owner)
         window.add_city_tab("Boston");window.add_city_tab("London");window.add_fake_tab()
         with patch("TrayWeatherApp.weather.create_temperature_icon") as icon:
-            window.update_city_tab("Boston",{"city":"Boston, US","temp":68.7,"desc":"Clear sky"})
-            window.update_city_tab("London",{"city":"London, UK","temp":50,"desc":"Rain"})
-            self.assertEqual(icon.call_args.args,(68.7,))
+            window.update_city_tab("Boston",{"city":"Boston, US","temp":68.7,"desc":"Clear sky","icon":"☀️"})
+            window.update_city_tab("London",{"city":"London, UK","temp":50,"desc":"Rain","icon":"🌧️"})
+            self.assertEqual(icon.call_args.args,(68.7,"☀️"))
             self.assertIn("68.7°F",owner.tray.setToolTip.call_args.args[0])
             window.tabs.tabBar().moveTab(1,0)
             self.assertEqual(owner.cities,["London","Boston"])
-            self.assertEqual(icon.call_args.args,(50,))
+            self.assertEqual(icon.call_args.args,(50,"🌧️"))
             window.remove_tab(0)
-            self.assertEqual(icon.call_args.args,(68.7,))
+            self.assertEqual(icon.call_args.args,(68.7,"☀️"))
             window.clear_weather("Boston")
-            self.assertEqual(icon.call_args.args,(None,))
+            self.assertEqual(icon.call_args.args,(None,"🌍"))
             window.remove_tab(0)
             self.assertIn("No cities",owner.tray.setToolTip.call_args.args[0])
         window.deleteLater()
         QCoreApplication.sendPostedEvents(None,QEvent.Type.DeferredDelete)
+
+    def test_combined_icon_contains_weather_and_temperature_regions(self):
+        for emoji in ("☀️", "🌙", "☁️", "🌧️"):
+            image = create_temperature_icon(69, emoji).pixmap(64, 64).toImage()
+            with self.subTest(emoji=emoji):
+                self.assertTrue(any(image.pixelColor(x,y).alpha() for x in range(64) for y in range(0,32)))
+                self.assertTrue(any(image.pixelColor(x,y).alpha() for x in range(64) for y in range(36,64)))
