@@ -48,6 +48,7 @@ class TrayWeatherApp(QObject):
             self.window.add_city_tab(city)
             self.fetch_weather_city(city)
         self.window.add_fake_tab()
+        self.window.restore_selected_city()
         self.timer = QTimer()
         self.timer.setInterval(self.REFRESH_INTERVAL_MS)
         self.timer.timeout.connect(self.fetch_weather_now)

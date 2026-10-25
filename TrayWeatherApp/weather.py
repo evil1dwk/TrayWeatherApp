@@ -258,7 +258,22 @@ class WeatherWindow(QWidget):
         pos, size = self.pos(), self.size()
         self.app_ref.config["window_pos"] = [pos.x(), pos.y()]
         self.app_ref.config["window_size"] = [size.width(), size.height()]
+        selected = self.tabs.currentWidget()
+        city = next((key for key, data in self.city_tabs.items()
+                     if data["container"] is selected), None)
+        if city is not None:
+            self.app_ref.config["selected_city"] = city
         self.app_ref.save_config()
+
+    def restore_selected_city(self):
+        city = self.app_ref.config.get("selected_city")
+        data = self.city_tabs.get(city)
+        if data is None:
+            order = self.get_tab_city_order()
+            data = self.city_tabs.get(order[0]) if order else None
+        if data:
+            self.tabs.setCurrentWidget(data["container"])
+        self.refresh_footer()
 
     def get_tab_city_order(self) -> list[str]:
         ordered = []

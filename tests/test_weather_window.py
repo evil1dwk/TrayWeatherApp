@@ -187,6 +187,21 @@ class WeatherWindowTests(unittest.TestCase):
                 self.assertEqual(self.window.footer_status.toolTip(), card.status_lbl.text())
                 self.assertIn("Up to date", self.window.footer_status.toolTip())
 
+    def test_selected_city_saved_and_restored_by_key(self):
+        boston = self.window.city_tabs["Boston"]["container"]
+        london = self.window.city_tabs["London"]["container"]
+        self.window.tabs.setCurrentWidget(boston)
+        self.window.save_window_geometry()
+        self.assertEqual(self.owner.config["selected_city"], "Boston")
+        # Startup inserts/selects other tabs before restoring the saved city.
+        self.window.tabs.setCurrentWidget(london)
+        self.window.tabs.setTabText(self.window.tabs.indexOf(boston), "Renamed city")
+        self.window.restore_selected_city()
+        self.assertIs(self.window.tabs.currentWidget(), boston)
+        self.owner.config["selected_city"] = "Removed city"
+        self.window.restore_selected_city()
+        self.assertIs(self.window.tabs.currentWidget(), boston)
+
     def test_normal_settings_gear_opens_settings(self):
         from TrayWeatherApp.ui_components import GlassCard
         callback = Mock()
