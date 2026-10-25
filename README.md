@@ -3,6 +3,45 @@
 A lightweight **system tray weather monitor** for Windows and Linux built with **Python 3.11+** and **PyQt6**.  
 TrayWeatherApp provides real-time weather updates, quick forecasts, and customizable themes — all from your system tray.
 
+## Features
+
+- Current weather and five-day forecasts for multiple cities.
+- Fixed Normal and Compact views, with remembered city tabs and window position.
+- Weather icon or temperature-only tray display.
+- System appearance, eight bundled themes, and custom theme import/export.
+- Background transparency and optional rounded corners.
+- Cached weather and forecasts when offline, with freshness and error details.
+- Imperial or Metric units and 12- or 24-hour clocks.
+
+## Download and run
+
+Download the appropriate archive from [Releases](https://github.com/evil1dwk/TrayWeatherApp/releases),
+extract it, and launch `TrayWeatherApp.exe` on Windows or `TrayWeatherApp` on Linux.
+Portable builds do not require a separate Python installation.
+
+Click the tray icon to show or hide the panel. Use **+** to add cities and the
+gear button to open Settings. Right-click the tray icon for **Quit**.
+
+## Run from source
+
+Requires Python **3.11+**. From the repository root:
+
+```bash
+python -m venv .venv
+# Windows: .venv\Scripts\activate
+# Linux: source .venv/bin/activate
+python -m pip install -e .
+python -m TrayWeatherApp
+```
+
+## Documentation
+
+- [User guide](docs/usage.md): cities, tray controls, views, forecasts, offline behavior, and Linux window positioning.
+- [Customization and configuration](docs/customization.md): themes, transparency, rounded corners, and saved settings.
+- [Theme format and compatibility](docs/themes.md): custom JSON themes and legacy ZIP imports.
+- [Development, builds, and releases](docs/development.md): tests, packaging, versioning, and project structure.
+- [Changelog](CHANGELOG.md): version history.
+
 ## Screenshots
 
 ### Light
@@ -18,244 +57,3 @@ TrayWeatherApp provides real-time weather updates, quick forecasts, and customiz
 Background opacity is adjustable in Settings. Text and weather icons stay fully opaque.
 
 ![Compact view with a transparent background](screenshots/Transparent.png)
-
----
-
-## 🧭 Features
-
-- 🌡️ **Live weather data** for multiple cities  
-- 🎨 **Customizable themes** (Dark, Light, Beach, etc.)  
-- ⚙️ **Settings persistence** — city, units, theme, and window layout are saved  
-- 📍 **Tray icon controls** — right-click for menu options:
-  - *Show/Hide Window*
-  - *Refresh*
-  - *Settings*
-  - *Quit*
-- 💾 **Local configuration** saved under your user profile
-- 🖥️ **Cross-platform support** — works on both Windows and Linux
-
----
-
-## Installation and development
-
-Requires Python **3.11+** on Windows or Linux. From the repository root:
-
-```bash
-python -m venv .venv
-# Windows: .venv\Scripts\activate
-# Linux: source .venv/bin/activate
-python -m pip install -e .
-python -m TrayWeatherApp
-```
-
-The installed command `trayweatherapp` also launches the app. Use
-`python -m TrayWeatherApp --version` to display its version without opening the GUI.
-The module name is case-sensitive on Linux.
-
-## Unit tests
-
-```bash
-python -m unittest discover -s tests -v
-```
-
-Tests include offscreen Qt widget checks, mock weather requests, and use temporary
-settings/theme directories; no API
-access or running desktop is required. A manual **Unit tests** GitHub Actions
-workflow covers Windows, Linux, and macOS with Python 3.11 and 3.14.
-macOS test coverage does not imply a supported macOS executable build.
-
-## Building
-
-```bash
-python -m pip install -e ".[build]"
-python scripts/build.py
-# Full build output:
-python scripts/build.py --verbose
-```
-
-Build on the target operating system. The executable and release archive go to
-`dist/`:
-
-- Windows: `TrayWeatherApp.exe` and `TrayWeatherApp-2.3.0-windows-<arch>.zip`
-- Linux: `TrayWeatherApp` and `TrayWeatherApp-2.3.0-linux-<arch>.tar.gz`
-
-There is no Windows installer step. Archives contain the standalone executable
-and any optional theme ZIPs from `themes/`. Extract before launching. Linux
-archives preserve executable permissions. Built-in themes are included inside the executable; no writable application
-folder is required.
-
-The build script resolves paths from its own location, so it also works when
-invoked by absolute path from another directory. Platform configurations live
-in `packaging/windows/build.json` and `packaging/linux/build.json`, matching
-TrayNSLookup. Temporary PyInstaller files go to the ignored `build/` folder.
-
-To create an installable Python wheel:
-
-```bash
-python -m pip wheel . --no-deps --wheel-dir dist
-```
-
-## Versioning
-
-Current version: **2.3.0**. This is the target for the first published release.
-
-`TrayWeatherApp/_version.py` is the single version source for Python package
-metadata, the application, and release archive names. Use **MAJOR.MINOR.PATCH**:
-major for incompatible changes, minor for compatible additions, patch for fixes.
-Builds never increment the version. Release tags should look like `v2.3.0`.
-After changing the version, reinstall the editable package with
-`python -m pip install -e .` (or `-e ".[build]"`) to refresh installed metadata.
-
-Before publishing, merge the release PR, pull `main`, run the tests, and build on
-each target OS. Create tag `v2.3.0` from the tested commit and attach the versioned
-ZIP and tar.gz archives from `dist/` to the GitHub release.
-
-## Project layout
-
-- `pyproject.toml`: package metadata, runtime dependencies, and optional build tools
-- `TrayWeatherApp/`: application package and module entry point
-- `tests/`: standard-library unittest suite
-- `scripts/build.py`: executable build and release archive creation
-- `packaging/<platform>/build.json`: tracked PyInstaller configuration
-- `build/`: temporary build files (ignored)
-- `themes/`: optional portable theme ZIP files
-- `dist/`: executable and release archive output (ignored)
-
-## Linux window positioning
-
-On Linux, the application defaults to Qt's xcb backend when DISPLAY is available.
-On a Wayland desktop this uses XWayland, allowing the app to query and restore
-window positions. XWayland and Qt's X11 runtime dependencies must be installed.
-The same startup behavior applies to source and standalone executable launches.
-
-You can test it explicitly:
-
-    QT_QPA_PLATFORM=xcb python -m TrayWeatherApp
-
-An explicit QT_QPA_PLATFORM setting is preserved. To opt back into native Wayland:
-
-    QT_QPA_PLATFORM=wayland python -m TrayWeatherApp
-
-Native Wayland may prevent applications from restoring top-level window positions.
-Window geometry is saved when quitting through the tray menu.
-
-## Tray window controls
-
-The weather panel has no title bar or minimize/maximize/close buttons. Click the
-tray icon to show or hide it, and drag the panel background or weather text to
-move it. Tab buttons, Settings gears, and links keep their usual actions.
-Positions and the selected city tab are saved when hiding or quitting.
-Startup restores that city, or the first tab if the saved city is unavailable. Use **Quit** in the tray menu to
-exit; Alt+F4 hides the panel. Settings and other dialogs retain normal controls.
-
-## Normal and Compact views
-
-Choose **Normal** or **Compact** under **View** in Settings. Both layouts keep the
-weather icon visible and use a fixed window size; manual resizing and maximizing
-are disabled. Save applies and remembers your choice. Cancel leaves the current
-view unchanged. The Settings preview also reflects the selected view when enough screen space is available.
-Settings has no scroll area; on short screens the preview is hidden to keep controls accessible.
-
-Normal uses 760 × 500 logical pixels; Compact uses 440 × 240.
-Compact is a horizontal summary with a small icon, city, temperature, conditions,
-feels-like/high/low line, and update footer. Hover for the full location,
-humidity, wind, local city time, or detailed update status. The footer gear opens
-Settings. Existing saved window
-positions are retained. Older arbitrary window sizes are replaced by the chosen
-view size.
-
-## Appearance
-
-Settings offers **Background opacity** from 60–100% (default 100%) and
-**Rounded window corners** (enabled by default, 20 logical pixels).
-Background transparency leaves text and icons fully opaque. Save applies and
-remembers the choices; Cancel preserves the current appearance. The preview
-reflects both options when visible. Desktop compositing is needed for transparency.
-
-## Tray display
-
-Settings offers **Weather icon** (default) or **Temperature only**. Save applies
-and remembers the choice; Cancel leaves it unchanged. Both use the leftmost city
-tab. Drag city tabs to change the tray city.
-
-Weather icon displays only the weather emoji. Temperature only uses large
-outlined digits, without a degree symbol. In both modes, hover for the exact
-temperature with units, location, conditions, and update status.
-
-## Daily forecast
-
-Use **Current / Forecast** below the city tabs. Normal shows five days and
-Compact also shows five, without changing the window size or selected city. The
-selection is remembered across cities and restarts.
-
-Each day shows its weather icon and high/low temperatures in your selected unit
-system. Normal also shows precipitation probability; hover over a day in either
-view for its full date, conditions, and precipitation chance. The first day is
-the current date at the selected location, followed by subsequent days.
-
-Forecast data arrives in the same request as current weather and is cached
-together. Switching views does not make another request. Existing caches without
-forecast data show an unavailable message until the next successful refresh.
-Saved forecasts remain visible after a failed refresh, with the shared footer
-showing their age and error state.
-
-## Weather freshness and cities
-
-Each weather card shows the last successful download in your computer's local
-time, its age, and whether it is up to date, refreshing, cached, or unable to
-refresh. Readings become stale after 30 minutes. An error keeps the last good
-weather visible; hover over the status for the error details.
-
-Successful results are saved to ~/.TrayWeatherApp/weather-cache.json and restored
-immediately at startup while a fresh request runs. The cache is separate for each
-location and unit system. It is bounded to 200 entries and may be deleted to reset it.
-
-Click **+** to search cities or postal codes. Select a result showing its
-state/province, country, and coordinates. Selected coordinates are saved so future
-refreshes use that exact location. Existing city-name settings continue to work;
-their coordinates are remembered after the next successful refresh. To correct an
-old ambiguous city, remove its tab and add it again through the search dialog.
-
-## Themes
-
-Choose **System**, **Light**, **Dark**, or one of the other bundled presets in
-Settings. System follows the OS appearance preference when available, with Dark
-as its fallback. Existing saved selections are retained.
-
-Settings shows a sample weather card before you Save. Cancel leaves the running
-theme unchanged. Use **Import Theme**, **Export Theme**, and **Open Themes Folder**
-to manage custom JSON themes or import existing theme ZIPs.
-
-Built-in themes ship inside the application. Custom themes live under
-~/.TrayWeatherApp/themes/; settings retain their existing location at
-~/.TrayWeatherApp/pyqt_tray_weather.json (under your user profile on Windows).
-See [Theme format and compatibility](docs/themes.md) for examples and details.
-
-The **About** button at the bottom-left of Settings shows the current application version,
-creator, project link, and issue link.
-
----
-
-## ⚙️ Configuration File
-
-TrayWeatherApp saves user settings in a JSON file:
-```json
-{
-  "cities": ["New York"],
-  "units": "imperial",
-  "window_pos": [722, 575],
-  "window_size": [760, 500],
-  "view_mode": "normal",
-  "tray_display": "icon",
-  "selected_city": "New York",
-  "forecast_mode": false,
-  "background_opacity": 100,
-  "rounded_corners": true,
-  "debug": false,
-  "time_format_24h": false,
-  "theme": "Dark"
-}
-```
-You can delete this file to reset settings.
-
----
