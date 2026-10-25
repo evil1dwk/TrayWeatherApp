@@ -69,13 +69,35 @@ class WeatherWindow(QWidget):
 
     def apply_view_mode(self):
         mode = self.app_ref.config.get("view_mode", "normal")
-        compact = mode == "compact"
-        self.setFixedSize(440, 240) if compact else self.setFixedSize(760, 500)
+        # Let the old fixed-size constraints go before changing child visibility.
+        # Otherwise Windows can apply the old Normal layout's minimum height
+        # during its native resize, leaving a tall Compact window until dragged.
+        self.setMinimumSize(0, 0)
+        self.setMaximumSize(16777215, 16777215)
         for city, data in self.city_tabs.items():
             data["card"].set_view_mode(mode)
             if "info" in data:
                 self.update_city_tab(city, data["info"])
+        self.settle_view_size()
+        # Settle again after pending layout requests and the Settings dialog's
+        # close event. Read the current mode so rapid switches cannot restore
+        # an obsolete size.
+        QTimer.singleShot(0, self.settle_view_size)
+
+    def settle_view_size(self):
+        for widget in reversed(self.findChildren(QWidget)):
+            layout = widget.layout()
+            if layout:
+                layout.invalidate()
+                layout.activate()
+            widget.updateGeometry()
+        self.layout().invalidate()
+        self.layout().activate()
+        size = (440, 240) if self.app_ref.config.get("view_mode") == "compact" else (760, 500)
+        self.setFixedSize(*size)
+        self.layout().activate()
         self.refresh_footer()
+        self.update()
 
     def refresh_footer(self, *_):
         if not hasattr(self, "footer_status"):

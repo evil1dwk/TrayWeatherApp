@@ -165,3 +165,28 @@ class WeatherWindowTests(unittest.TestCase):
         callback.assert_called_once()
         card.close()
         card.deleteLater()
+
+    def test_view_switch_settles_without_drag_or_stale_queued_size(self):
+        self.window.show()
+        card = self.window.city_tabs["Boston"]["card"]
+        self.window.tabs.setCurrentWidget(self.window.city_tabs["Boston"]["container"])
+        self.qt.processEvents()
+        original = self.window.setFixedSize
+        modes_at_resize = []
+        def set_size(*size):
+            modes_at_resize.append((card.view_mode, size))
+            return original(*size)
+        with patch.object(self.window, "setFixedSize", side_effect=set_size):
+            self.owner.config["view_mode"] = "compact"
+            self.window.apply_view_mode()
+            self.assertEqual(modes_at_resize[0], ("compact", (440, 240)))
+            self.qt.processEvents()
+            self.assertEqual((self.window.width(), self.window.height()), (440, 240))
+            # Queue two transitions before processing events; latest mode wins.
+            self.owner.config["view_mode"] = "normal"
+            self.window.apply_view_mode()
+            self.owner.config["view_mode"] = "compact"
+            self.window.apply_view_mode()
+            self.qt.processEvents()
+        self.assertEqual((self.window.width(), self.window.height()), (440, 240))
+        self.assertLessEqual(card.compact_panel.height(), self.window.height())
