@@ -24,8 +24,9 @@ class SettingsDialog(QDialog):
                                           theme_manager.builtin_dir,
                                           theme_manager.legacy_dirs)
         self.units_input = QComboBox()
-        self.units_input.addItems(["metric", "imperial"])
-        self.units_input.setCurrentText(config.get("units", "imperial"))
+        self.units_input.addItem("Metric", "metric")
+        self.units_input.addItem("Imperial", "imperial")
+        self.units_input.setCurrentIndex(0 if config.get("units") == "metric" else 1)
         self.view_select = QComboBox()
         self.view_select.addItem("Normal", "normal")
         self.view_select.addItem("Compact", "compact")
@@ -161,7 +162,7 @@ class SettingsDialog(QDialog):
             self.preview_card.setMaximumSize(16777215, 16777215)
             self.preview_frame.layout().setAlignment(self.preview_card, Qt.AlignmentFlag(0))
         self.preview_card.updateGeometry()
-        metric = self.units_input.currentText() == "metric"
+        metric = self.units_input.currentData() == "metric"
         temperature, wind = ("C", "km/h") if metric else ("F", "mph")
         self.preview_card.temp_lbl.setText("21.0°C" if metric else "69.8°F")
         self.preview_card.time_lbl.setText("🕒 10:30" if self.time_cb.isChecked() else "🕒 10:30 AM")
@@ -215,7 +216,7 @@ class SettingsDialog(QDialog):
 
     def get_values(self):
         return {
-            "units": self.units_input.currentText(),
+            "units": self.units_input.currentData(),
             "view_mode": self.view_select.currentData(),
             "tray_display": self.tray_select.currentData(),
             "time_format_24h": self.time_cb.isChecked(),
