@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "TrayWeatherApp"
+dynamic = ["version"]
+description = "System tray weather monitor for Windows and Linux"
+readme = "README.md"
+requires-python = ">=3.11"
+license = {text = "GPL-3.0-only"}
+dependencies = ["PyQt6>=6.4", "requests>=2.31"]
+
+[project.optional-dependencies]
+build = ["pyinstaller>=6.0"]
+
+[project.scripts]
+trayweatherapp = "TrayWeatherApp.main:main"
+
+[tool.setuptools]
+packages = ["TrayWeatherApp"]
+
+[tool.setuptools.dynamic]
+version = {attr = "TrayWeatherApp._version.__version__"}

@@ -2,7 +2,9 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "TrayWeatherApp"
-#define MyAppVersion "2.1.4"
+#ifndef MyAppVersion
+  #error "Pass /DMyAppVersion=<version> (or use python build.py)"
+#endif
 #define MyAppExeName "TrayWeatherApp.exe"
 
 [Setup]
@@ -26,9 +28,9 @@ DisableProgramGroupPage=yes
 ; Uncomment the following line to run in non administrative install mode (install for current user only).
 ;PrivilegesRequired=lowest
 PrivilegesRequiredOverridesAllowed=dialog
-OutputDir=C:\Projects\TrayWeatherApp\
+OutputDir=..\..\releases\windows
 OutputBaseFilename=trayweatherapp-install
-SetupIconFile=C:\Projects\TrayWeatherApp\TrayWeatherApp.ico
+SetupIconFile=..\..\TrayWeatherApp.ico
 SolidCompression=yes
 WizardStyle=modern
 
@@ -39,8 +41,8 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
 [Files]
-Source: "C:\Projects\TrayWeatherApp\releases\windows\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\Projects\TrayWeatherApp\themes\*"; DestDir: "{app}\themes\"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "..\..\releases\windows\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\..\themes\*"; DestDir: "{app}\themes\"; Flags: ignoreversion recursesubdirs createallsubdirs
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]

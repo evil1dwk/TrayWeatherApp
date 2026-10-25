@@ -1,1 +1,11 @@
 .idea/
+
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+.build/
+dist/
+*.spec
+build/lib/
+build/bdist.*/

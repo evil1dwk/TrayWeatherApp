@@ -17,6 +17,8 @@ class TrayWeatherApp:
 
     def __init__(self):
         self.app = QApplication(sys.argv)
+        from ._version import __version__
+        self.app.setApplicationVersion(__version__)
         self.app.setQuitOnLastWindowClosed(False)
         self.theme = ThemeManager()
         self.load_config()
@@ -51,6 +53,7 @@ class TrayWeatherApp:
         self.timer.start()
 
     def ensure_example_themes(self):
+        THEMES_DIR.mkdir(parents=True, exist_ok=True)
         if list(THEMES_DIR.glob("*.zip")):
             return
         log("No themes found; generating example themes (dark, light, solarized)")

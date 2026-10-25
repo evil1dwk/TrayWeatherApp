@@ -22,17 +22,11 @@ def get_base_path() -> Path:
     return Path(__file__).resolve().parent.parent
 
 CONFIG_PATH = Path.home() / ".TrayWeatherApp" / "pyqt_tray_weather.json"
-LOG_PATH = Path.home() / ".TrayWeatherApp" / "pyqt_tray_weather.log"
+LOG_PATH = CONFIG_PATH.with_name("pyqt_tray_weather.log")
 BASE_DIR = get_base_path()
-THEMES_DIR = BASE_DIR / "themes"
-CONFIG_PATH = Path.home() / ".TrayWeatherApp" / "pyqt_tray_weather.json"
-LOG_PATH = Path.home() / ".TrayWeatherApp" / "pyqt_tray_weather.log"
-
-CONFIG_PATH.parent.mkdir(parents=True, exist_ok=True)
-THEMES_DIR.mkdir(parents=True, exist_ok=True)
-
-CONFIG_PATH.parent.mkdir(parents=True, exist_ok=True)
-THEMES_DIR.mkdir(parents=True, exist_ok=True)
+PORTABLE_THEMES_DIR = BASE_DIR / "themes"
+THEMES_DIR = (PORTABLE_THEMES_DIR if any(PORTABLE_THEMES_DIR.glob("*.zip"))
+              else CONFIG_PATH.parent / "themes")
 
 DEFAULT_CONFIG = {
     "cities": ["New York"],
@@ -46,7 +40,6 @@ DEFAULT_CONFIG = {
 
 
 CONFIG_PATH = Path.home() / ".TrayWeatherApp" / "pyqt_tray_weather.json"
-CONFIG_PATH.parent.mkdir(parents=True, exist_ok=True)
 
 def load_config():
     if CONFIG_PATH.exists():
@@ -66,6 +59,7 @@ def load_config():
 
 def save_config(cfg: dict):
     try:
+        CONFIG_PATH.parent.mkdir(parents=True, exist_ok=True)
         CONFIG_PATH.write_text(json.dumps(cfg, indent=2), encoding="utf-8")
     except Exception as e:
         with open(Path.home() / ".TrayWeatherApp" / "pyqt_tray_weather.log", "a", encoding="utf-8") as f:
@@ -81,6 +75,7 @@ def log(msg, level="DEBUG"):
         if not debug_enabled and level == "DEBUG":
             return
         line = f"[{datetime.now():%Y-%m-%d %H:%M:%S}] [{level}] {msg}"
+        LOG_PATH.parent.mkdir(parents=True, exist_ok=True)
         with open(LOG_PATH, "a", encoding="utf-8") as f:
             f.write(line + "\n")
     except Exception:
