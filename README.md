@@ -55,9 +55,9 @@ macOS test coverage does not imply a supported macOS executable build.
 
 ```bash
 python -m pip install -e ".[build]"
-python build.py
+python scripts/build.py
 # Full build output:
-python build.py --verbose
+python scripts/build.py --verbose
 ```
 
 Build on the target operating system. Executables go to `releases/windows/`
@@ -90,7 +90,7 @@ Builds never increment the version. Release tags should look like `v2.2.0`.
 - `pyproject.toml`: package metadata, runtime dependencies, and optional build tools
 - `TrayWeatherApp/`: application package and module entry point
 - `tests/`: standard-library unittest suite
-- `build.py` and `build/<platform>/`: executable and installer configuration
+- `scripts/build.py` and `build/<platform>/`: executable and installer configuration
 - `themes/`: optional portable theme ZIP files
 - `releases/<platform>/`: executable output
 

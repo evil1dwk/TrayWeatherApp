@@ -9,7 +9,7 @@ import unittest
 from unittest.mock import patch
 import zipfile
 
-import build as builder
+from scripts import build as builder
 from TrayWeatherApp import __version__
 from TrayWeatherApp import config_utils
 from TrayWeatherApp.theme import ThemeManager
@@ -33,7 +33,7 @@ class PackagingTests(unittest.TestCase):
             previous = Path.cwd()
             try:
                 os.chdir(directory)
-                with patch.object(sys, "argv", ["build.py"]), patch.object(
+                with patch.object(sys, "argv", ["scripts/build.py"]), patch.object(
                     builder, "run_pyinstaller") as run, patch.object(
                     builder, "run_inno_setup"), patch.object(builder, "clean_build_artifacts") as clean:
                     builder.main()
@@ -45,6 +45,14 @@ class PackagingTests(unittest.TestCase):
             finally:
                 os.chdir(previous)
         self.assertTrue((ROOT / "build/windows/build.json").exists())
+
+    def test_build_script_runs_from_scripts_and_other_directory(self):
+        self.assertFalse((ROOT / "build.py").exists())
+        with tempfile.TemporaryDirectory() as directory:
+            result = subprocess.run(
+                [sys.executable, str(ROOT / "scripts/build.py"), "--help"],
+                cwd=directory, capture_output=True, text=True, check=True)
+        self.assertIn("--config", result.stdout)
 
     def test_pyinstaller_uses_active_interpreter(self):
         with tempfile.TemporaryDirectory() as directory, patch.object(builder.subprocess, "run") as run:
