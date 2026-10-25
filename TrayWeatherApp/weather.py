@@ -2,7 +2,7 @@
 
 from PyQt6.QtCore import Qt
 from datetime import datetime, timezone, timedelta
-from PyQt6.QtCore import Qt, QTimer, QSignalBlocker
+from PyQt6.QtCore import Qt, QTimer, QSignalBlocker, QEvent
 from PyQt6.QtGui import (
     QPixmap, QFont, QIcon, QPainter, QLinearGradient, QColor,
     QPainterPath
@@ -27,7 +27,9 @@ class WeatherWindow(QWidget):
         self.city_tabs = {}
         self.setWindowTitle("TrayWeatherApp")
         set_sun_icon(self)
-        self.setWindowFlag(Qt.WindowType.WindowMaximizeButtonHint, False)
+        self.setWindowFlags(Qt.WindowType.Tool | Qt.WindowType.FramelessWindowHint)
+        self._drag_offset = None
+        self.installEventFilter(self)
         self.move(*app_ref.config.get("window_pos", [100, 100]))
         enable_windows_acrylic(self)
 
@@ -163,7 +165,32 @@ class WeatherWindow(QWidget):
         """
         self.tabs.setStyleSheet(qss)
 
+    def handle_window_drag(self, event):
+        if event.type() == QEvent.Type.MouseButtonPress and event.button() == Qt.MouseButton.LeftButton:
+            handle = self.windowHandle()
+            if handle and handle.startSystemMove():
+                return True
+            self._drag_offset = event.globalPosition().toPoint() - self.pos()
+            return True
+        if event.type() == QEvent.Type.MouseMove and self._drag_offset is not None:
+            if event.buttons() & Qt.MouseButton.LeftButton:
+                self.move(event.globalPosition().toPoint() - self._drag_offset)
+                return True
+        if event.type() == QEvent.Type.MouseButtonRelease and self._drag_offset is not None:
+            self._drag_offset = None
+            self.save_window_geometry()
+            return True
+        return False
+
+    def closeEvent(self, event):
+        # Alt+F4 closes the panel, while Quit remains in the tray menu.
+        event.ignore()
+        self.save_window_geometry()
+        self.hide()
+
     def eventFilter(self, obj, event):
+        if self.handle_window_drag(event):
+            return True
         if event.type() == event.Type.Paint and isinstance(obj, QWidget):
             p = QPainter(obj)
             g = QLinearGradient(0, 0, 0, obj.height())
@@ -238,6 +265,9 @@ class WeatherWindow(QWidget):
         lay.setContentsMargins(0, 8, 0, 8)
         lay.setSpacing(0)
         card = GlassCard(self.app_ref)
+        for child in [card, *card.findChildren(QWidget)]:
+            if not isinstance(child, (QToolButton, QPushButton)):
+                child.installEventFilter(self)
         lay.addWidget(card)
         lay.addSpacing(8)  # fixed spacing (no dark band)
         idx = self.tabs.count() - 1 if self.has_fake_tab() else self.tabs.count()

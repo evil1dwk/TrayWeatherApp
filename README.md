@@ -121,6 +121,14 @@ An explicit QT_QPA_PLATFORM setting is preserved. To opt back into native Waylan
 Native Wayland may prevent applications from restoring top-level window positions.
 Window geometry is saved when quitting through the tray menu.
 
+## Tray window controls
+
+The weather panel has no title bar or minimize/maximize/close buttons. Click the
+tray icon to show or hide it, and drag the panel background or weather text to
+move it. Tab buttons, Settings gears, and links keep their usual actions.
+Positions are saved when hiding or quitting. Use **Quit** in the tray menu to
+exit; Alt+F4 hides the panel. Settings and other dialogs retain normal controls.
+
 ## Normal and Compact views
 
 Choose **Normal** or **Compact** under **View** in Settings. Both layouts keep the

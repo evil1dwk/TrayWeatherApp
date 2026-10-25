@@ -184,6 +184,7 @@ class TrayWeatherApp(QObject):
 
     def toggle_window(self):
         if self.window.isVisible():
+            self.window.save_window_geometry()
             self.window.hide()
         else:
             self.window.show()

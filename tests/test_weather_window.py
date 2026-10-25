@@ -190,3 +190,24 @@ class WeatherWindowTests(unittest.TestCase):
             self.qt.processEvents()
         self.assertEqual((self.window.width(), self.window.height()), (440, 240))
         self.assertLessEqual(card.compact_panel.height(), self.window.height())
+
+    def test_weather_panel_is_frameless_and_close_only_hides_it(self):
+        from PyQt6.QtCore import Qt
+        self.assertTrue(self.window.windowFlags() & Qt.WindowType.FramelessWindowHint)
+        self.window.show()
+        self.qt.processEvents()
+        self.window.close()
+        self.assertFalse(self.window.isVisible())
+        self.owner.save_config.assert_called()
+
+    def test_dragging_weather_text_uses_native_system_move(self):
+        from PyQt6.QtCore import Qt
+        from PyQt6.QtTest import QTest
+        self.window.show()
+        self.window.tabs.setCurrentWidget(self.window.city_tabs["Boston"]["container"])
+        self.qt.processEvents()
+        handle = Mock()
+        handle.startSystemMove.return_value = True
+        with patch.object(self.window, "windowHandle", return_value=handle):
+            QTest.mousePress(self.window.city_tabs["Boston"]["card"].city_lbl, Qt.MouseButton.LeftButton)
+        handle.startSystemMove.assert_called_once()
