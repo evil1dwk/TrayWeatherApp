@@ -108,6 +108,18 @@ class GlassCard(QWidget):
             self.settings_button.setEnabled(False)
         footer.addStretch(1)
         footer.addWidget(self.settings_button)
+        self.normal_settings_button = QToolButton()
+        self.normal_settings_button.setText("⚙")
+        self.normal_settings_button.setToolTip("Settings")
+        self.normal_settings_button.setFixedSize(24, 24)
+        if callback:
+            self.normal_settings_button.clicked.connect(callback)
+        else:
+            self.normal_settings_button.setEnabled(False)
+        normal_footer = QHBoxLayout()
+        normal_footer.addStretch(1)
+        normal_footer.addWidget(self.normal_settings_button)
+        right.addLayout(normal_footer)
         compact.addLayout(footer)
         outer.addWidget(self.compact_panel)
         self._compact_summary = "Feels —  ·  High — / Low —"

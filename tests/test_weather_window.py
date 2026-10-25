@@ -150,3 +150,18 @@ class WeatherWindowTests(unittest.TestCase):
         self.window.set_weather_state("London", "error", "timeout")
         self.assertIn("Unable", self.window.footer_status.text())
         self.assertIn("timeout", self.window.footer_status.toolTip())
+
+    def test_normal_settings_gear_opens_settings(self):
+        from TrayWeatherApp.ui_components import GlassCard
+        callback = Mock()
+        card = GlassCard(SimpleNamespace(theme=self.owner.theme,
+                                        config={"view_mode": "normal"}, open_settings=callback))
+        card.show()
+        self.qt.processEvents()
+        self.assertTrue(card.normal_settings_button.isVisible())
+        self.assertFalse(card.settings_button.isVisible())
+        self.assertEqual(card.normal_settings_button.toolTip(), "Settings")
+        card.normal_settings_button.click()
+        callback.assert_called_once()
+        card.close()
+        card.deleteLater()
