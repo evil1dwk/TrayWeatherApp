@@ -120,12 +120,18 @@ class WeatherWindow(QWidget):
                 tooltip += " · " + error
         else:
             text, tooltip = "No city selected", ""
-        available = max(0, self.width() - 36 - self.credit_lbl.sizeHint().width() - 12)
+        color = self.app_ref.theme.value("text_muted", "#9EA3B8")
+        self.footer_status.setStyleSheet(f"color:{color}; font-size:11px; margin-top:4px; background:transparent;")
+        # Polish before measuring: Windows can otherwise use the inherited
+        # system font for elision before applying our 11px footer style.
+        self.footer_status.ensurePolished()
+        self.credit_lbl.ensurePolished()
+        margins = self.layout().contentsMargins()
+        available = max(0, self.width() - margins.left() - margins.right()
+                        - self.credit_lbl.sizeHint().width() - 12)
         self.footer_status.setText(self.footer_status.fontMetrics().elidedText(
             text, Qt.TextElideMode.ElideRight, available))
         self.footer_status.setToolTip(tooltip)
-        color = self.app_ref.theme.value("text_muted", "#9EA3B8")
-        self.footer_status.setStyleSheet(f"color:{color}; font-size:11px; margin-top:4px; background:transparent;")
 
     def apply_theme_to_credit(self):
 

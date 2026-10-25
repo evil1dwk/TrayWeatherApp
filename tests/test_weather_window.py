@@ -155,6 +155,10 @@ class WeatherWindowTests(unittest.TestCase):
         from datetime import datetime, timezone
         self.owner.config["view_mode"] = "compact"
         self.window.apply_view_mode()
+        # A large system font must not affect the explicitly styled footer,
+        # including before its first show/polish on Windows.
+        from PyQt6.QtGui import QFont
+        self.window.footer_status.setFont(QFont("Segoe UI", 24))
         expected = {}
         for city in ("Boston", "London"):
             self.window.update_city_tab(city, {"city": city, "temp": 20,
