@@ -159,6 +159,7 @@ class WeatherWindowTests(unittest.TestCase):
         # including before its first show/polish on Windows.
         from PyQt6.QtGui import QFont
         self.window.footer_status.setFont(QFont("Segoe UI", 24))
+        self.window.credit_lbl.setFont(QFont("Segoe UI", 24))
         expected = {}
         for city in ("Boston", "London"):
             self.window.update_city_tab(city, {"city": city, "temp": 20,

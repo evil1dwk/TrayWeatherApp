@@ -5,7 +5,7 @@ from datetime import datetime, timezone, timedelta
 from PyQt6.QtCore import Qt, QTimer, QSignalBlocker, QEvent
 from PyQt6.QtGui import (
     QPixmap, QFont, QIcon, QPainter, QLinearGradient, QColor,
-    QPainterPath
+    QPainterPath, QFontMetrics
 )
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QTabWidget, QInputDialog, QToolButton, QTabBar,
@@ -122,14 +122,21 @@ class WeatherWindow(QWidget):
             text, tooltip = "No city selected", ""
         color = self.app_ref.theme.value("text_muted", "#9EA3B8")
         self.footer_status.setStyleSheet(f"color:{color}; font-size:11px; margin-top:4px; background:transparent;")
-        # Polish before measuring: Windows can otherwise use the inherited
-        # system font for elision before applying our 11px footer style.
+        footer_font = QFont("Segoe UI")
+        footer_font.setPixelSize(11)
+        self.footer_status.setFont(footer_font)
+        self.credit_lbl.setFont(footer_font)
+        # Rich-text QLabel size hints can retain the Windows system font's
+        # width. Measure its known plain text with the same explicit font.
+        metrics = QFontMetrics(footer_font)
+        credit_width = metrics.horizontalAdvance("Powered by Open-Meteo") + 4
+        self.credit_lbl.setFixedWidth(credit_width)
         self.footer_status.ensurePolished()
         self.credit_lbl.ensurePolished()
         margins = self.layout().contentsMargins()
         available = max(0, self.width() - margins.left() - margins.right()
-                        - self.credit_lbl.sizeHint().width() - 12)
-        self.footer_status.setText(self.footer_status.fontMetrics().elidedText(
+                        - credit_width - 12)
+        self.footer_status.setText(metrics.elidedText(
             text, Qt.TextElideMode.ElideRight, available))
         self.footer_status.setToolTip(tooltip)
 
