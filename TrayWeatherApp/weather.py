@@ -366,7 +366,14 @@ class WeatherWindow(QWidget):
         card = data.get("card")
         temperature = card.temp_lbl.text() if card else "—"
         state = card.status_lbl.text() if card else "Waiting for weather"
-        tray.setToolTip(f"{name} · {temperature} · {info.get('desc', '-').capitalize()} · {state}")
+        location = info.get("location") or getattr(self.app_ref, "locations", {}).get(city, {})
+        city_name = location.get("name") or name.split(",")[0]
+        conditions = info.get("desc", "-").capitalize()
+        # Native tray tooltips differ across desktops; plain text with explicit
+        # lines stays readable without relying on unsupported HTML styling.
+        status, separator, updated = state.partition(" · Updated ")
+        freshness = f"{status}\nUpdated {updated}" if separator else status
+        tray.setToolTip(f"{city_name}\n{temperature} · {conditions}\n\n{freshness}")
 
     def remove_tab_by_widget(self, widget):
         idx = self.tabs.indexOf(widget)

@@ -82,6 +82,12 @@ class TrayTemperatureTests(unittest.TestCase):
             emoji.assert_called_with("☀️")
             digits.assert_not_called()
             tooltip=owner.tray.setToolTip.call_args.args[0]
+            self.assertEqual(tooltip.splitlines()[:3], ["Boston", "69.0°F · Clear sky", ""])
+            window.city_tabs["Boston"]["card"].status_lbl.setText(
+                "Up to date · Updated 04:12 PM (0 min ago)")
+            window.update_tray_temperature()
+            tooltip=owner.tray.setToolTip.call_args.args[0]
+            self.assertTrue(tooltip.endswith("Up to date\nUpdated 04:12 PM (0 min ago)"))
             owner.config["tray_display"]="temperature"
             window.update_tray_temperature()
             digits.assert_called_with(69)
