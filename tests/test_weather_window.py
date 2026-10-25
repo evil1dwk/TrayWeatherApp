@@ -37,7 +37,9 @@ class WeatherWindowTests(unittest.TestCase):
         self.window.update_city_tab("Boston", {"city": "Boston, US", "temp": 12})
         data = self.window.city_tabs["Boston"]
         index = self.window.tabs.indexOf(data["container"])
-        self.assertEqual(self.window.tabs.tabText(index), "Boston, US")
+        self.assertEqual(self.window.tabs.tabText(index), "Boston")
+        # Removal must still work if a label is changed independently.
+        self.window.tabs.setTabText(index, "Boston, US")
         self.window.remove_tab(index)
         QCoreApplication.sendPostedEvents(None, QEvent.Type.DeferredDelete)
         self.assertTrue(sip.isdeleted(data["card"].city_lbl))
@@ -84,3 +86,21 @@ class WeatherWindowTests(unittest.TestCase):
         self.assertEqual(self.owner.cities, [])
         self.assertTrue(self.window.has_fake_tab())
         self.window.retheme()
+
+    def test_city_name_only_and_stable_text_when_resizing(self):
+        self.window.update_city_tab("Boston", {
+            "city": "Chase City, Virginia, United States",
+            "location": {"name": "Chase City"}, "temp": 20, "wind_speed": 6.6})
+        data = self.window.city_tabs["Boston"]
+        card = data["card"]
+        self.assertEqual(card.city_lbl.text(), "Chase City")
+        self.assertEqual(self.window.tabs.tabText(0), "Chase City")
+        self.assertIn("Virginia", card.city_lbl.toolTip())
+        before = card.more_lbl.font().pointSize()
+        self.window.show()
+        for width, height in [(520, 480), (1000, 540), (700, 480)]:
+            self.window.resize(width, height)
+            self.qt.processEvents()
+            self.assertEqual(card.more_lbl.font().pointSize(), before)
+            self.assertGreaterEqual(card.more_lbl.height(), card.more_lbl.heightForWidth(card.more_lbl.width()))
+        self.assertIn("<table", card.more_lbl.text())

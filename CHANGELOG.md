@@ -12,6 +12,7 @@
 - Show last successful weather download, freshness, cached/offline state, and refresh errors.
 - Cache successful readings by location and units; preserve them when refresh fails.
 - Add background city search with state/province/country choices and saved coordinates.
+- Show city-only labels with full-location tooltips and use stable, responsive weather-card layouts.
 - Deliver weather updates on the GUI thread and ignore stale results after tab/unit changes.
 - Keep active request threads alive until they finish when closing tabs or quitting.
 - Default Linux launches to xcb/XWayland when an X display is available, preserving explicit platform overrides.

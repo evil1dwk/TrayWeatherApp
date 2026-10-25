@@ -173,7 +173,7 @@ class WeatherWindow(QWidget):
         lay.addSpacing(8)  # fixed spacing (no dark band)
         idx = self.tabs.count() - 1 if self.has_fake_tab() else self.tabs.count()
         location = getattr(self.app_ref, "locations", {}).get(city)
-        label = location_label(location) if location else city
+        label = location.get("name", city) if location else city.split(",")[0]
         with QSignalBlocker(self.tabs):
             self.tabs.insertTab(idx, container, label)
             self.tabs.setCurrentIndex(idx)
@@ -264,10 +264,15 @@ class WeatherWindow(QWidget):
         self.city_tabs[city]["info"] = info
         temp_label, wind_label = ("C", "km/h") if self.app_ref.units == "metric" else ("F", "mph")
         tab_idx = self.tabs.indexOf(data["container"])
+        full_name = info.get("city", city)
+        location = info.get("location") or getattr(self.app_ref, "locations", {}).get(city, {})
+        city_name = location.get("name") or full_name.split(",")[0]
         if tab_idx != -1:
-            self.tabs.setTabText(tab_idx, info.get("city", city))
+            self.tabs.setTabText(tab_idx, city_name)
+            self.tabs.setTabToolTip(tab_idx, full_name)
 
-        card.city_lbl.setText(info.get("city", city))
+        card.city_lbl.setText(city_name)
+        card.city_lbl.setToolTip(full_name)
         t = info.get("temp")
         card.temp_lbl.setText(f"{t:.1f}°{temp_label}" if isinstance(t, (int, float)) else "-°")
         card.desc_lbl.setText(info.get("desc", "-").capitalize())
@@ -363,21 +368,5 @@ class WeatherWindow(QWidget):
             self.app_ref.tray.setToolTip(f"{info.get('city', city)} · {card.temp_lbl.text()} · {text}")
 
     def update_card_scaling(self):
-        if not hasattr(self, "city_tabs"):
-            return
-        base = max(10, self.height() // 30)
-        for city, data in list(self.city_tabs.items()):
-            try:
-                card: GlassCard = data.get("card")
-                if not card or not hasattr(card, "city_lbl"):
-                    continue
-                card.city_lbl.setFont(QFont("Segoe UI", base + 10, QFont.Weight.Bold))
-                card.temp_lbl.setFont(QFont("Segoe UI", base + 26, QFont.Weight.DemiBold))
-                card.desc_lbl.setFont(QFont("Segoe UI", base + 4))
-                card.more_lbl.setFont(QFont("Segoe UI", base + 2))
-                card.time_lbl.setFont(QFont("Segoe UI", max(12, base + 2)))
-                iw = max(160, min(260, int(self.width() * 0.22)))
-                card.icon_lbl.setMinimumWidth(iw)
-            except RuntimeError as e:
-                log(f"Ignored scaling for deleted card {city}: {e}", "DEBUG")
-                continue
+        for data in self.city_tabs.values():
+            data["card"].apply_responsive_layout()

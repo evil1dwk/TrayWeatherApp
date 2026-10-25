@@ -39,10 +39,12 @@ class GlassCard(QWidget):
         self.city_lbl.setWordWrap(True)
         self.city_lbl.setTextFormat(Qt.TextFormat.PlainText)
         self.time_lbl = QLabel("🕒 --:--")
-        city_row = QHBoxLayout(); city_row.addWidget(self.city_lbl); city_row.addWidget(self.time_lbl); city_row.addStretch(1)
+        city_row = QVBoxLayout(); city_row.setSpacing(4)
+        city_row.addWidget(self.city_lbl); city_row.addWidget(self.time_lbl)
         self.temp_lbl = QLabel("-°")
         self.desc_lbl = QLabel("-")
         self.more_lbl = QLabel("-"); self.more_lbl.setWordWrap(True)
+        self.more_lbl.setTextFormat(Qt.TextFormat.RichText)
         right = QVBoxLayout(); right.addLayout(city_row); right.addWidget(self.temp_lbl)
         right.addWidget(self.desc_lbl); right.addWidget(self.more_lbl)
         self.status_lbl = QLabel("Waiting for weather")
@@ -51,7 +53,12 @@ class GlassCard(QWidget):
         right.addWidget(self.status_lbl)
         right.addStretch(1)
         row = QHBoxLayout(self); row.setContentsMargins(26,26,26,26); row.setSpacing(26)
-        row.addWidget(self.icon_lbl,1); row.addLayout(right,3)
+        row.addWidget(self.icon_lbl); row.addLayout(right,1)
+        self.icon_lbl.setFixedWidth(150)
+        self.city_lbl.setFont(QFont("Segoe UI", 20, QFont.Weight.Bold))
+        self.time_lbl.setFont(QFont("Segoe UI", 11))
+        self.desc_lbl.setFont(QFont("Segoe UI", 13))
+        self.more_lbl.setFont(QFont("Segoe UI", 11))
         self.apply_theme_to_card()
 
     def apply_theme_to_card(self):
@@ -74,11 +81,11 @@ class GlassCard(QWidget):
         self._border_color = ThemeManager.parse_color(border, "rgba(255,255,255,25)")
 
         self.city_lbl.setStyleSheet(f"color:{text_primary};")
-        self.city_lbl.setFont(QFont("Segoe UI",22,QFont.Weight.Bold))
+        self.city_lbl.setFont(QFont("Segoe UI",20,QFont.Weight.Bold))
         self.status_lbl.setStyleSheet(f"color:{text_muted}; font-size:11px;")
-        self.time_lbl.setStyleSheet(f"color:{text_muted}; margin-left:12px;")
+        self.time_lbl.setStyleSheet(f"color:{text_muted};")
         self.temp_lbl.setStyleSheet(f"color:{temp_color};")
-        self.temp_lbl.setFont(QFont("Segoe UI",42))
+        self.temp_lbl.setFont(QFont("Segoe UI",38))
         self.desc_lbl.setStyleSheet(f"color:{text_desc};")
         self.more_lbl.setStyleSheet(f"color:{text_more};")
 
@@ -100,12 +107,25 @@ class GlassCard(QWidget):
     def themed_detail_html(self, feels, high, low, humid, wind, units_t, units_w):
         c = self._colors
         return (
-            f"🌡️ Feels like: <span style='color:{c['temp']}'>{feels}°{units_t}</span>  "
-            f"↑ High: <span style='color:{c['high']}'>{high}°{units_t}</span>  "
-            f"↓ Low: <span style='color:{c['low']}'>{low}°{units_t}</span>  "
-            f"💧 Humidity: <span style='color:{c['humid']}'>{humid}%</span>\n"
-            f"💨 Wind: <span style='color:{c['wind']}'>{wind} {units_w}</span>"
+            "<table cellspacing='6' cellpadding='0'>"
+            f"<tr><td colspan='2'>Feels like: <span style='color:{c['temp']}'>{feels}°{units_t}</span></td></tr>"
+            f"<tr><td width='170'>High: <span style='color:{c['high']}'>{high}°{units_t}</span></td>"
+            f"<td>Low: <span style='color:{c['low']}'>{low}°{units_t}</span></td></tr>"
+            f"<tr><td width='170'>Humidity: <span style='color:{c['humid']}'>{humid}%</span></td>"
+            f"<td>Wind: <span style='color:{c['wind']}'>{wind}&nbsp;{units_w}</span></td></tr>"
+            "</table>"
         )
+
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        self.apply_responsive_layout()
+
+    def apply_responsive_layout(self):
+        # Keep text sizes stable. Give narrow windows the full width for text.
+        self.icon_lbl.setVisible(self.width() >= 620)
+        icon_size = max(64, min(110, int(self.height() * 0.26)))
+        self.icon_lbl.setFont(QFont("Segoe UI Emoji", icon_size))
+
 
     def paintEvent(self, event):
         p = QPainter(self)
