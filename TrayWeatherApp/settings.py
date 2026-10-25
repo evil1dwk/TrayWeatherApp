@@ -1,7 +1,7 @@
 """Settings with an isolated theme preview; only Save changes the live theme."""
 from types import SimpleNamespace
 
-from PyQt6.QtCore import QUrl
+from PyQt6.QtCore import QUrl, Qt
 from PyQt6.QtGui import QDesktopServices, QCursor
 from PyQt6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QFormLayout, QComboBox, QCheckBox,
@@ -131,7 +131,18 @@ class SettingsDialog(QDialog):
         self.setStyleSheet(self.preview_theme.stylesheet() +
                           f"QWidget#SettingsContent, QWidget#SettingsViewport, QScrollArea {{ background: {background}; }}")
         self.preview_card.apply_theme_to_card()
-        self.preview_card.set_view_mode(self.view_select.currentData())
+        mode = self.view_select.currentData()
+        self.preview_card.set_view_mode(mode)
+        if mode == "compact":
+            # Match the real compact card instead of stretching it to fill
+            # the fixed-height preview area reserved for the Normal layout.
+            self.preview_card.setFixedSize(404, 130)
+            self.preview_frame.layout().setAlignment(self.preview_card, Qt.AlignmentFlag.AlignCenter)
+        else:
+            self.preview_card.setMinimumSize(0, 0)
+            self.preview_card.setMaximumSize(16777215, 16777215)
+            self.preview_frame.layout().setAlignment(self.preview_card, Qt.AlignmentFlag(0))
+        self.preview_card.updateGeometry()
         metric = self.units_input.currentText() == "metric"
         temperature, wind = ("C", "km/h") if metric else ("F", "mph")
         self.preview_card.temp_lbl.setText("21.0°C" if metric else "69.8°F")

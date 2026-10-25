@@ -219,3 +219,21 @@ class ThemeSystemTests(unittest.TestCase):
         self.assertEqual(dialog.height(), 416)
         dialog.close()
         dialog.deleteLater()
+
+    def test_compact_preview_uses_actual_card_size_without_stretching(self):
+        dialog = SettingsDialog({}, self.manager)
+        dialog.show()
+        self.qt.processEvents()
+        window_size = dialog.size()
+        for index in (1, 0, 1):
+            dialog.view_select.setCurrentIndex(index)
+            self.qt.processEvents()
+            self.assertEqual(dialog.size(), window_size)
+            if index == 1:
+                self.assertEqual((dialog.preview_card.width(), dialog.preview_card.height()), (404, 130))
+                self.assertLess(dialog.preview_card.height(), dialog.preview_frame.height())
+                self.assertGreater(dialog.preview_card.pos().y(), 0)
+            else:
+                self.assertGreater(dialog.preview_card.width(), 404)
+        dialog.close()
+        dialog.deleteLater()
