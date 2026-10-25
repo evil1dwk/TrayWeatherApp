@@ -166,6 +166,7 @@ class WeatherWindowTests(unittest.TestCase):
                 "updated_at": datetime.now(timezone.utc).isoformat()})
             self.window.set_weather_state(city, "live")
             expected[city] = self.window.city_tabs[city]["card"].compact_status.text()
+        displayed_by_city = {}
         for forecast in (True, False, True):
             self.window.select_forecast(forecast)
             for city in ("London", "Boston"):
@@ -174,7 +175,16 @@ class WeatherWindowTests(unittest.TestCase):
                 self.window.tabs.setCurrentWidget(self.window.city_tabs[city]["container"])
                 self.window.refresh_footer()
                 self.assertEqual(card.compact_status.text(), expected[city])
-                self.assertEqual(self.window.footer_status.text(), expected[city])
+                displayed = self.window.footer_status.text()
+                # Native font metrics may elide the footer. Verify that it
+                # remains the compact status, not the longer Normal text,
+                # and stays identical across repeated layout/tab changes.
+                self.assertTrue(displayed.startswith("● Updated"), displayed)
+                self.assertTrue(expected[city].startswith(displayed.removesuffix("…")))
+                if city in displayed_by_city:
+                    self.assertEqual(displayed, displayed_by_city[city])
+                displayed_by_city[city] = displayed
+                self.assertEqual(self.window.footer_status.toolTip(), card.status_lbl.text())
                 self.assertIn("Up to date", self.window.footer_status.toolTip())
 
     def test_normal_settings_gear_opens_settings(self):
