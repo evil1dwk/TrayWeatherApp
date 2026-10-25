@@ -34,6 +34,8 @@ DEFAULT_CONFIG = {
     "window_size": [760, 500],
     "view_mode": "normal",
     "tray_display": "icon",
+    "background_opacity": 100,
+    "rounded_corners": True,
     "debug": False,
     "time_format_24h": False,
     "theme": "System"
@@ -55,6 +57,8 @@ def load_config():
         "window_size": [760, 500],
     "view_mode": "normal",
     "tray_display": "icon",
+    "background_opacity": 100,
+    "rounded_corners": True,
         "debug": False,
         "time_format_24h": False,
         "theme": "System"

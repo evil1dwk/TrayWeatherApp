@@ -227,8 +227,26 @@ class ThemeSystemTests(unittest.TestCase):
         dialog.close()
         dialog.deleteLater()
 
+    def test_appearance_preview_does_not_change_saved_settings(self):
+        config = {}
+        dialog = SettingsDialog(config, self.manager)
+        self.assertEqual(dialog.opacity_slider.value(), 100)
+        self.assertTrue(dialog.rounded_cb.isChecked())
+        dialog.opacity_slider.setValue(70)
+        dialog.rounded_cb.setChecked(False)
+        self.assertEqual(dialog.get_values()["background_opacity"], 70)
+        self.assertFalse(dialog.get_values()["rounded_corners"])
+        self.assertEqual(dialog.preview_card.app_ref.config["background_opacity"], 70)
+        self.assertEqual(config, {})
+        dialog.reject()
+        dialog.deleteLater()
+
     def test_compact_preview_uses_actual_card_size_without_stretching(self):
+        from PyQt6.QtCore import QRect
+        from unittest.mock import Mock
         dialog = SettingsDialog({}, self.manager)
+        dialog._settings_screen = Mock()
+        dialog._settings_screen.availableGeometry.return_value = QRect(0, 0, 1920, 1080)
         dialog.show()
         self.qt.processEvents()
         window_size = dialog.size()

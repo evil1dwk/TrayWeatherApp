@@ -2,7 +2,7 @@
 
 from PyQt6.QtCore import Qt
 from datetime import datetime, timezone, timedelta
-from PyQt6.QtCore import Qt, QTimer, QSignalBlocker, QEvent
+from PyQt6.QtCore import Qt, QTimer, QSignalBlocker, QEvent, QRectF
 from PyQt6.QtGui import (
     QPixmap, QFont, QIcon, QPainter, QLinearGradient, QColor,
     QPainterPath, QFontMetrics
@@ -31,7 +31,7 @@ class WeatherWindow(QWidget):
         self._drag_offset = None
         self.installEventFilter(self)
         self.move(*app_ref.config.get("window_pos", [100, 100]))
-        enable_windows_acrylic(self)
+        self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground, True)
 
         self.tabs = QTabWidget()
         self.tabs.setMovable(True)
@@ -65,7 +65,7 @@ class WeatherWindow(QWidget):
         footer.addWidget(self.credit_lbl)
         lay.addLayout(footer)
 
-        self.setAttribute(Qt.WidgetAttribute.WA_OpaquePaintEvent, True)
+        self.setAttribute(Qt.WidgetAttribute.WA_OpaquePaintEvent, False)
         self.setAutoFillBackground(False)
         self.apply_view_mode()
         self.refresh_footer()
@@ -164,7 +164,7 @@ class WeatherWindow(QWidget):
         tab_color = t.value("tab_text", "#E6E8EE")
         tab_border = t.value("tab_border", "rgba(255,255,255,25)")
         qss = f"""
-            QTabWidget::pane{{border:0;}}
+            QTabWidget::pane{{border:0; background:transparent;}}
             QTabBar::tab{{
                 background:{tab_bg};
                 color:{tab_color};
@@ -206,18 +206,6 @@ class WeatherWindow(QWidget):
     def eventFilter(self, obj, event):
         if self.handle_window_drag(event):
             return True
-        # Drag filters also watch labels and cards. Only tab containers need
-        # a background gradient; painting it on each label creates dark bands.
-        is_container = any(obj is data["container"] for data in self.city_tabs.values())
-        if event.type() == QEvent.Type.Paint and is_container:
-            p = QPainter(obj)
-            g = QLinearGradient(0, 0, 0, obj.height())
-            c0, c1 = self.app_ref.theme.value("background_gradient", ["#12141A", "#1A2036"])
-            g.setColorAt(0, self.app_ref.theme.parse_color(c0))
-            g.setColorAt(1, self.app_ref.theme.parse_color(c1))
-            p.fillRect(obj.rect(), g)
-            p.end()
-            return False
         return super().eventFilter(obj, event)
 
     def retheme(self):
@@ -238,11 +226,22 @@ class WeatherWindow(QWidget):
 
     def paintEvent(self, e):
         p = QPainter(self)
+        p.setRenderHint(QPainter.RenderHint.Antialiasing)
+        p.setCompositionMode(QPainter.CompositionMode.CompositionMode_Source)
+        p.fillRect(self.rect(), Qt.GlobalColor.transparent)
+        p.setCompositionMode(QPainter.CompositionMode.CompositionMode_SourceOver)
         g = QLinearGradient(0, 0, 0, self.height())
-        col0, col1 = self.app_ref.theme.value("background_gradient", ["#12141A", "#1A2036"])
-        g.setColorAt(0, self.app_ref.theme.parse_color(col0))
-        g.setColorAt(1, self.app_ref.theme.parse_color(col1))
-        p.fillRect(self.rect(), g)
+        colors = self.app_ref.theme.value("background_gradient", ["#12141A", "#1A2036"])
+        opacity = max(60, min(100, self.app_ref.config.get("background_opacity", 100))) / 100
+        for stop, value in enumerate(colors[:2]):
+            color = self.app_ref.theme.parse_color(value)
+            color.setAlphaF(opacity)
+            g.setColorAt(stop, color)
+        radius = 20 if self.app_ref.config.get("rounded_corners", True) else 0
+        path = QPainterPath()
+        path.addRoundedRect(QRectF(self.rect()), radius, radius)
+        p.fillPath(path, g)
+        p.end()
 
     def resizeEvent(self, e):
         super().resizeEvent(e)

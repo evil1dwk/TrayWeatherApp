@@ -2,6 +2,7 @@
 
 ## 2.3.0 — planned first release
 
+- Add background opacity (60–100%) and optional 20 px rounded window corners in Settings; text remains opaque.
 - Replaced generated theme ZIPs with eight bundled, validated JSON presets.
 - Added System appearance, custom theme import/export, and a custom themes folder.
 - Added an isolated Settings preview; Save applies a theme and Cancel preserves the active theme.

@@ -6,7 +6,7 @@ from PyQt6.QtGui import QDesktopServices, QCursor
 from PyQt6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QFormLayout, QComboBox, QCheckBox,
     QPushButton, QLabel, QFileDialog, QMessageBox, QFrame,
-    QWidget, QApplication, QSizePolicy,
+    QWidget, QApplication, QSizePolicy, QSlider,
 )
 from TrayWeatherApp.config_utils import set_sun_icon
 from TrayWeatherApp.theme import ThemeManager, ThemeError
@@ -48,6 +48,17 @@ class SettingsDialog(QDialog):
         form.addRow("Theme", self.theme_select)
         form.addRow("View", self.view_select)
         form.addRow("Tray display", self.tray_select)
+        self.opacity_slider = QSlider(Qt.Orientation.Horizontal)
+        self.opacity_slider.setRange(60, 100)
+        self.opacity_slider.setValue(config.get("background_opacity", 100))
+        self.opacity_value = QLabel(f"{self.opacity_slider.value()}%")
+        opacity_row = QHBoxLayout()
+        opacity_row.addWidget(self.opacity_slider)
+        opacity_row.addWidget(self.opacity_value)
+        form.addRow("Background opacity", opacity_row)
+        self.rounded_cb = QCheckBox("Rounded window corners")
+        self.rounded_cb.setChecked(config.get("rounded_corners", True))
+        form.addRow(self.rounded_cb)
         form.addRow(self.time_cb)
         form.addRow(self.debug_cb)
         outer = QVBoxLayout(self)
@@ -79,7 +90,7 @@ class SettingsDialog(QDialog):
         self.preview_frame.setObjectName("ThemePreview")
         self.preview_frame.setFixedHeight(340)
         preview_layout = QVBoxLayout(self.preview_frame)
-        self.preview_card = GlassCard(SimpleNamespace(theme=self.preview_theme))
+        self.preview_card = GlassCard(SimpleNamespace(theme=self.preview_theme, config={}))
         self.preview_card.city_lbl.setText("New York")
         self.preview_card.time_lbl.setText("🕒 10:30 AM")
         self.preview_card.desc_lbl.setText("Partly cloudy")
@@ -105,6 +116,8 @@ class SettingsDialog(QDialog):
         self.units_input.currentTextChanged.connect(self.update_preview)
         self.time_cb.toggled.connect(self.update_preview)
         self.view_select.currentIndexChanged.connect(self.update_preview)
+        self.opacity_slider.valueChanged.connect(self.update_preview)
+        self.rounded_cb.toggled.connect(self.update_preview)
         self.update_preview()
         self.fit_to_screen()
 
@@ -120,10 +133,10 @@ class SettingsDialog(QDialog):
     def fit_to_screen(self):
         available = self._settings_screen.availableGeometry()
         # Leave space for the native title bar and desktop panels.
-        height = max(1, min(760, available.height() - 64))
+        height = max(1, min(850, available.height() - 64))
         # Preserve access to every setting and action on short displays. The
         # decorative preview is optional; the dialog never needs scrollbars.
-        show_preview = height >= 700
+        show_preview = height >= 800
         self.preview_caption.setVisible(show_preview)
         self.preview_frame.setVisible(show_preview)
         self.setFixedSize(max(1, min(680, available.width() - 32)), height)
@@ -149,7 +162,11 @@ class SettingsDialog(QDialog):
         background = self.preview_theme.value("background_gradient")[0]
         self.setStyleSheet(self.preview_theme.stylesheet() +
                           f"QWidget#SettingsContent {{ background: {background}; }}")
+        self.opacity_value.setText(f"{self.opacity_slider.value()}%")
+        self.preview_card.app_ref.config.update(background_opacity=self.opacity_slider.value(),
+                                                rounded_corners=self.rounded_cb.isChecked())
         self.preview_card.apply_theme_to_card()
+        self.preview_card.update()
         mode = self.view_select.currentData()
         self.preview_card.set_view_mode(mode)
         if mode == "compact":
@@ -170,9 +187,13 @@ class SettingsDialog(QDialog):
             21 if metric else 70, 24 if metric else 75, 16 if metric else 61,
             55, 12 if metric else 7, temperature, wind))
         gradient = self.preview_theme.value("background_gradient")
-        colors = [self.preview_theme.parse_color(c).name() for c in gradient]
+        colors = []
+        for value in gradient:
+            color = self.preview_theme.parse_color(value)
+            colors.append(f"rgba({color.red()},{color.green()},{color.blue()},{round(self.opacity_slider.value() * 2.55)})")
+        radius = 20 if self.rounded_cb.isChecked() else 0
         self.preview_frame.setStyleSheet(
-            f"QFrame#ThemePreview {{ background: qlineargradient(x1:0,y1:0,x2:0,y2:1,stop:0 {colors[0]},stop:1 {colors[1]}); }}")
+            f"QFrame#ThemePreview {{ border-radius:{radius}px; background: qlineargradient(x1:0,y1:0,x2:0,y2:1,stop:0 {colors[0]},stop:1 {colors[1]}); }}")
         catalog = self.theme_manager.catalog()
         path = catalog.get(name)
         source = ("Follows the operating system's Light/Dark preference." if name == "System"
@@ -219,6 +240,8 @@ class SettingsDialog(QDialog):
             "units": self.units_input.currentData(),
             "view_mode": self.view_select.currentData(),
             "tray_display": self.tray_select.currentData(),
+            "background_opacity": self.opacity_slider.value(),
+            "rounded_corners": self.rounded_cb.isChecked(),
             "time_format_24h": self.time_cb.isChecked(),
             "debug": self.debug_cb.isChecked(),
             "theme": self.theme_select.currentText(),

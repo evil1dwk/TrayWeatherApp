@@ -187,6 +187,20 @@ class WeatherWindowTests(unittest.TestCase):
                 self.assertEqual(self.window.footer_status.toolTip(), card.status_lbl.text())
                 self.assertIn("Up to date", self.window.footer_status.toolTip())
 
+    def test_background_transparency_and_rounded_corners(self):
+        self.owner.config.update(background_opacity=70, rounded_corners=True)
+        self.window.show()
+        self.qt.processEvents()
+        image = self.window.grab().toImage()
+        self.assertEqual(image.pixelColor(0, 0).alpha(), 0)
+        self.assertLess(image.pixelColor(2, self.window.height() // 2).alpha(), 255)
+        self.assertEqual(self.window.windowOpacity(), 1.0)
+        self.owner.config.update(background_opacity=100, rounded_corners=False)
+        self.window.update()
+        self.qt.processEvents()
+        image = self.window.grab().toImage()
+        self.assertEqual(image.pixelColor(0, 0).alpha(), 255)
+
     def test_selected_city_saved_and_restored_by_key(self):
         boston = self.window.city_tabs["Boston"]["container"]
         london = self.window.city_tabs["London"]["container"]
@@ -272,5 +286,4 @@ class WeatherWindowTests(unittest.TestCase):
                 self.window.eventFilter(widget, QEvent(QEvent.Type.Paint))
             painter.assert_not_called()
             self.window.eventFilter(data["container"], QEvent(QEvent.Type.Paint))
-            painter.assert_called_once_with(data["container"])
-            painter.return_value.end.assert_called_once()
+            painter.assert_not_called()

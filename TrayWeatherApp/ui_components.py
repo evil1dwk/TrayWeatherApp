@@ -260,9 +260,13 @@ class GlassCard(QWidget):
 
         r = self.rect().adjusted(0, 0, -1, -1)
         path = QPainterPath()
-        path.addRoundedRect(QRectF(r), 16, 16)
+        radius = 20 if getattr(self.app_ref, "config", {}).get("rounded_corners", True) else 0
+        path.addRoundedRect(QRectF(r), radius, radius)
 
-        p.fillPath(path, self.bg_color)
+        color = QColor(self.bg_color)
+        config = getattr(self.app_ref, "config", {})
+        color.setAlphaF(color.alphaF() * max(60, min(100, config.get("background_opacity", 100))) / 100)
+        p.fillPath(path, color)
         p.setPen(QPen(self._border_color, 0.8))
         p.drawPath(path)
 

@@ -207,7 +207,10 @@ class TrayWeatherApp(QObject):
             self.units = vals["units"]
             self.config["view_mode"] = vals.get("view_mode", "normal")
             self.config["tray_display"] = vals.get("tray_display", "icon")
+            self.config["background_opacity"] = vals.get("background_opacity", 100)
+            self.config["rounded_corners"] = vals.get("rounded_corners", True)
             self.window.apply_view_mode()
+            self.window.update()
             if old_units != self.units:
                 for city in list(self.cities):
                     cached = self.cache.get(city, self.units, self.locations.get(city))
