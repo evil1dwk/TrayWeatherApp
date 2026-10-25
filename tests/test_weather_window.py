@@ -136,3 +136,17 @@ class WeatherWindowTests(unittest.TestCase):
         card.settings_button.click()
         callback.assert_called_once()
         card.deleteLater()
+
+    def test_shared_footer_tracks_selected_city_outside_card(self):
+        from datetime import datetime, timezone
+        self.window.update_city_tab("Boston", {"city": "Boston", "temp": 20,
+                                              "updated_at": datetime.now(timezone.utc).isoformat()})
+        self.window.set_weather_state("Boston", "live")
+        self.window.tabs.setCurrentWidget(self.window.city_tabs["Boston"]["container"])
+        self.assertIn("Up to date", self.window.footer_status.text())
+        self.assertTrue(self.window.city_tabs["Boston"]["card"].status_lbl.isHidden())
+        self.window.tabs.setCurrentWidget(self.window.city_tabs["London"]["container"])
+        self.assertIn("Waiting", self.window.footer_status.text())
+        self.window.set_weather_state("London", "error", "timeout")
+        self.assertIn("Unable", self.window.footer_status.text())
+        self.assertIn("timeout", self.window.footer_status.toolTip())

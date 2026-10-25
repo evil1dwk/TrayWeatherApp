@@ -37,6 +37,7 @@ class WeatherWindow(QWidget):
         self.tabs.tabCloseRequested.connect(self.remove_tab)
         self.tabs.currentChanged.connect(self.check_fake_tab)
         self.tabs.tabBarClicked.connect(self.click_tab)
+        self.tabs.currentChanged.connect(self.refresh_footer)
         self.apply_theme_to_tabs()
 
         lay = QVBoxLayout(self)
@@ -51,11 +52,20 @@ class WeatherWindow(QWidget):
         self.credit_lbl.setOpenExternalLinks(True)
         self.credit_lbl.setAlignment(Qt.AlignmentFlag.AlignRight)
         self.apply_theme_to_credit()
-        lay.addWidget(self.credit_lbl, alignment=Qt.AlignmentFlag.AlignRight)
+        self.footer_status = QLabel("Waiting for weather")
+        self.footer_status.setTextFormat(Qt.TextFormat.PlainText)
+        self.footer_status.setSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Preferred)
+        footer = QHBoxLayout()
+        footer.setContentsMargins(0, 0, 0, 0)
+        footer.setSpacing(12)
+        footer.addWidget(self.footer_status, 1)
+        footer.addWidget(self.credit_lbl)
+        lay.addLayout(footer)
 
         self.setAttribute(Qt.WidgetAttribute.WA_OpaquePaintEvent, True)
         self.setAutoFillBackground(False)
         self.apply_view_mode()
+        self.refresh_footer()
 
     def apply_view_mode(self):
         mode = self.app_ref.config.get("view_mode", "normal")
@@ -65,6 +75,31 @@ class WeatherWindow(QWidget):
             data["card"].set_view_mode(mode)
             if "info" in data:
                 self.update_city_tab(city, data["info"])
+        self.refresh_footer()
+
+    def refresh_footer(self, *_):
+        if not hasattr(self, "footer_status"):
+            return
+        selected = self.tabs.currentWidget()
+        data = next((data for data in self.city_tabs.values()
+                     if data["container"] is selected), None)
+        compact = self.app_ref.config.get("view_mode") == "compact"
+        if data:
+            card = data["card"]
+            label = card.compact_status if compact else card.status_lbl
+            text = label.text()
+            tooltip = card.status_lbl.text()
+            error = data.get("error", "")
+            if error:
+                tooltip += " · " + error
+        else:
+            text, tooltip = "No city selected", ""
+        available = max(0, self.width() - 36 - self.credit_lbl.sizeHint().width() - 12)
+        self.footer_status.setText(self.footer_status.fontMetrics().elidedText(
+            text, Qt.TextElideMode.ElideRight, available))
+        self.footer_status.setToolTip(tooltip)
+        color = self.app_ref.theme.value("text_muted", "#9EA3B8")
+        self.footer_status.setStyleSheet(f"color:{color}; font-size:11px; margin-top:4px; background:transparent;")
 
     def apply_theme_to_credit(self):
 
@@ -81,6 +116,7 @@ class WeatherWindow(QWidget):
         self.credit_lbl.setStyleSheet("font-size: 11px; margin-top: 4px; background: transparent;")
 
         self.credit_lbl.update()
+        self.refresh_footer()
 
     def apply_theme_to_tabs(self):
         t = self.app_ref.theme
@@ -143,6 +179,7 @@ class WeatherWindow(QWidget):
     def resizeEvent(self, e):
         super().resizeEvent(e)
         self.repaint()
+        self.refresh_footer()
         for data in self.city_tabs.values():
             card = data.get("card")
             if card:
@@ -384,6 +421,7 @@ class WeatherWindow(QWidget):
         card.compact_status.setToolTip(text + (" · " + data.get("error", "") if data.get("error") else ""))
         card.compact_status.setStyleSheet(
             f"color:{'#75C991' if timestamp and state == 'live' and not old else '#E7B76B'}; background:transparent;")
+        self.refresh_footer()
         card.status_lbl.setToolTip(data.get("error", "") or
                                   "Time of the last successful download, shown in your computer's local time.")
         if getattr(self.app_ref, "tray", None) and self.app_ref.cities and city == self.app_ref.cities[0]:

@@ -106,6 +106,7 @@ class GlassCard(QWidget):
             self.settings_button.clicked.connect(callback)
         else:
             self.settings_button.setEnabled(False)
+        footer.addStretch(1)
         footer.addWidget(self.settings_button)
         compact.addLayout(footer)
         outer.addWidget(self.compact_panel)
@@ -183,6 +184,8 @@ class GlassCard(QWidget):
         compact = self.view_mode == "compact"
         self.normal_panel.layout().setContentsMargins(22, 22, 22, 22)
         self.normal_panel.layout().setSpacing(18)
+        self.status_lbl.setVisible(False)
+        self.compact_status.setVisible(False)
         self.normal_panel.setVisible(not compact)
         self.compact_panel.setVisible(compact)
         self.icon_lbl.setVisible(True)
