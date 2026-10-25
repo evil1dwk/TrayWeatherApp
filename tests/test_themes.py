@@ -204,7 +204,7 @@ class ThemeSystemTests(unittest.TestCase):
         dialog.close()
         dialog.deleteLater()
 
-    def test_small_screen_scrolls_content_without_hiding_save(self):
+    def test_small_screen_omits_preview_without_scrollbars_or_hiding_controls(self):
         from PyQt6.QtCore import QRect
         from unittest.mock import Mock
         dialog = SettingsDialog({}, self.manager)
@@ -213,7 +213,13 @@ class ThemeSystemTests(unittest.TestCase):
         dialog.show()
         self.qt.processEvents()
         self.assertEqual(dialog.height(), 416)
-        self.assertGreater(dialog.scroll_area.verticalScrollBar().maximum(), 0)
+        from PyQt6.QtWidgets import QScrollArea
+        self.assertEqual(dialog.findChildren(QScrollArea), [])
+        self.assertTrue(dialog.preview_frame.isHidden())
+        for control in (dialog.units_input, dialog.theme_select, dialog.view_select,
+                        dialog.tray_select, dialog.about_button, dialog.save_button):
+            self.assertTrue(control.isVisible())
+            self.assertLess(control.mapTo(dialog, control.rect().bottomRight()).y(), dialog.height())
         self.assertLessEqual(dialog.save_button.geometry().bottom(), dialog.height())
         dialog.view_select.setCurrentIndex(1)
         self.qt.processEvents()

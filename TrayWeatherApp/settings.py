@@ -6,7 +6,7 @@ from PyQt6.QtGui import QDesktopServices, QCursor
 from PyQt6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QFormLayout, QComboBox, QCheckBox,
     QPushButton, QLabel, QFileDialog, QMessageBox, QFrame,
-    QWidget, QScrollArea, QApplication, QSizePolicy,
+    QWidget, QApplication, QSizePolicy,
 )
 from TrayWeatherApp.config_utils import set_sun_icon
 from TrayWeatherApp.theme import ThemeManager, ThemeError
@@ -50,16 +50,11 @@ class SettingsDialog(QDialog):
         form.addRow(self.time_cb)
         form.addRow(self.debug_cb)
         outer = QVBoxLayout(self)
-        self.scroll_area = QScrollArea()
-        self.scroll_area.setWidgetResizable(True)
-        self.scroll_area.setFrameShape(QFrame.Shape.NoFrame)
-        self.scroll_area.setSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Ignored)
         content = QWidget()
         content.setObjectName("SettingsContent")
-        self.scroll_area.viewport().setObjectName("SettingsViewport")
         layout = QVBoxLayout(content)
-        self.scroll_area.setWidget(content)
-        outer.addWidget(self.scroll_area, 1)
+        layout.setContentsMargins(0, 0, 0, 0)
+        outer.addWidget(content, 1)
         layout.addLayout(form)
         if theme_manager.last_error:
             warning = QLabel(f"Saved theme unavailable; using Dark. {theme_manager.last_error}")
@@ -77,7 +72,8 @@ class SettingsDialog(QDialog):
         self.source_label = QLabel()
         self.source_label.setWordWrap(True)
         layout.addWidget(self.source_label)
-        layout.addWidget(QLabel("Preview — Save applies this theme to the app."))
+        self.preview_caption = QLabel("Preview — Save applies this theme to the app.")
+        layout.addWidget(self.preview_caption)
         self.preview_frame = QFrame()
         self.preview_frame.setObjectName("ThemePreview")
         self.preview_frame.setFixedHeight(340)
@@ -123,8 +119,13 @@ class SettingsDialog(QDialog):
     def fit_to_screen(self):
         available = self._settings_screen.availableGeometry()
         # Leave space for the native title bar and desktop panels.
-        self.setFixedSize(max(1, min(680, available.width() - 32)),
-                          max(1, min(700, available.height() - 64)))
+        height = max(1, min(760, available.height() - 64))
+        # Preserve access to every setting and action on short displays. The
+        # decorative preview is optional; the dialog never needs scrollbars.
+        show_preview = height >= 700
+        self.preview_caption.setVisible(show_preview)
+        self.preview_frame.setVisible(show_preview)
+        self.setFixedSize(max(1, min(680, available.width() - 32)), height)
 
     def showEvent(self, event):
         super().showEvent(event)
@@ -146,7 +147,7 @@ class SettingsDialog(QDialog):
         self.save_button.setEnabled(True)
         background = self.preview_theme.value("background_gradient")[0]
         self.setStyleSheet(self.preview_theme.stylesheet() +
-                          f"QWidget#SettingsContent, QWidget#SettingsViewport, QScrollArea {{ background: {background}; }}")
+                          f"QWidget#SettingsContent {{ background: {background}; }}")
         self.preview_card.apply_theme_to_card()
         mode = self.view_select.currentData()
         self.preview_card.set_view_mode(mode)
