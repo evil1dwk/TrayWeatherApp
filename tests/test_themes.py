@@ -187,3 +187,35 @@ class ThemeSystemTests(unittest.TestCase):
         dialog.reject()
         self.assertEqual(config["view_mode"], "normal")
         dialog.deleteLater()
+
+    def test_settings_size_stays_fixed_when_preview_changes(self):
+        dialog = SettingsDialog({}, self.manager)
+        dialog.show()
+        self.qt.processEvents()
+        original = dialog.size()
+        for index in (1, 0, 1):
+            dialog.view_select.setCurrentIndex(index)
+            self.qt.processEvents()
+            self.assertEqual(dialog.size(), original)
+            self.assertEqual(dialog.minimumSize(), dialog.maximumSize())
+            self.assertTrue(dialog.save_button.isVisible())
+            self.assertLessEqual(dialog.save_button.geometry().bottom(), dialog.height())
+        dialog.close()
+        dialog.deleteLater()
+
+    def test_small_screen_scrolls_content_without_hiding_save(self):
+        from PyQt6.QtCore import QRect
+        from unittest.mock import Mock
+        dialog = SettingsDialog({}, self.manager)
+        dialog._settings_screen = Mock()
+        dialog._settings_screen.availableGeometry.return_value = QRect(0, 0, 800, 480)
+        dialog.show()
+        self.qt.processEvents()
+        self.assertEqual(dialog.height(), 416)
+        self.assertGreater(dialog.scroll_area.verticalScrollBar().maximum(), 0)
+        self.assertLessEqual(dialog.save_button.geometry().bottom(), dialog.height())
+        dialog.view_select.setCurrentIndex(1)
+        self.qt.processEvents()
+        self.assertEqual(dialog.height(), 416)
+        dialog.close()
+        dialog.deleteLater()

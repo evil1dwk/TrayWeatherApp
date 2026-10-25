@@ -2,10 +2,11 @@
 from types import SimpleNamespace
 
 from PyQt6.QtCore import QUrl
-from PyQt6.QtGui import QDesktopServices
+from PyQt6.QtGui import QDesktopServices, QCursor
 from PyQt6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QFormLayout, QComboBox, QCheckBox,
     QPushButton, QLabel, QFileDialog, QMessageBox, QFrame,
+    QWidget, QScrollArea, QApplication, QSizePolicy,
 )
 from TrayWeatherApp.config_utils import set_sun_icon
 from TrayWeatherApp.theme import ThemeManager, ThemeError
@@ -17,7 +18,7 @@ class SettingsDialog(QDialog):
         super().__init__()
         self.setWindowTitle("Settings")
         set_sun_icon(self)
-        self.resize(640, 550)
+        self._settings_screen = QApplication.screenAt(QCursor.pos()) or self.screen()
         self.theme_manager = theme_manager
         self.preview_theme = ThemeManager(theme_manager.custom_dir,
                                           theme_manager.builtin_dir,
@@ -43,7 +44,17 @@ class SettingsDialog(QDialog):
         form.addRow("View", self.view_select)
         form.addRow(self.time_cb)
         form.addRow(self.debug_cb)
-        layout = QVBoxLayout(self)
+        outer = QVBoxLayout(self)
+        self.scroll_area = QScrollArea()
+        self.scroll_area.setWidgetResizable(True)
+        self.scroll_area.setFrameShape(QFrame.Shape.NoFrame)
+        self.scroll_area.setSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Ignored)
+        content = QWidget()
+        content.setObjectName("SettingsContent")
+        self.scroll_area.viewport().setObjectName("SettingsViewport")
+        layout = QVBoxLayout(content)
+        self.scroll_area.setWidget(content)
+        outer.addWidget(self.scroll_area, 1)
         layout.addLayout(form)
         if theme_manager.last_error:
             warning = QLabel(f"Saved theme unavailable; using Dark. {theme_manager.last_error}")
@@ -64,6 +75,7 @@ class SettingsDialog(QDialog):
         layout.addWidget(QLabel("Preview — Save applies this theme to the app."))
         self.preview_frame = QFrame()
         self.preview_frame.setObjectName("ThemePreview")
+        self.preview_frame.setFixedHeight(340)
         preview_layout = QVBoxLayout(self.preview_frame)
         self.preview_card = GlassCard(SimpleNamespace(theme=self.preview_theme))
         self.preview_card.city_lbl.setText("New York")
@@ -83,12 +95,27 @@ class SettingsDialog(QDialog):
         self.save_button.clicked.connect(self.accept)
         buttons.addWidget(self.cancel_button)
         buttons.addWidget(self.save_button)
-        layout.addLayout(buttons)
+        outer.addLayout(buttons)
         self.theme_select.currentTextChanged.connect(self.update_preview)
         self.units_input.currentTextChanged.connect(self.update_preview)
         self.time_cb.toggled.connect(self.update_preview)
         self.view_select.currentIndexChanged.connect(self.update_preview)
         self.update_preview()
+        self.fit_to_screen()
+
+    def fit_to_screen(self):
+        available = self._settings_screen.availableGeometry()
+        # Leave space for the native title bar and desktop panels.
+        self.setFixedSize(max(1, min(680, available.width() - 32)),
+                          max(1, min(700, available.height() - 64)))
+
+    def showEvent(self, event):
+        super().showEvent(event)
+        self.fit_to_screen()
+        available = self._settings_screen.availableGeometry()
+        frame = self.frameGeometry()
+        frame.moveCenter(available.center())
+        self.move(frame.topLeft())
 
     def update_preview(self, *_):
         name = self.theme_select.currentText()
@@ -100,7 +127,9 @@ class SettingsDialog(QDialog):
             return
         self.error_label.clear()
         self.save_button.setEnabled(True)
-        self.setStyleSheet(self.preview_theme.stylesheet())
+        background = self.preview_theme.value("background_gradient")[0]
+        self.setStyleSheet(self.preview_theme.stylesheet() +
+                          f"QWidget#SettingsContent, QWidget#SettingsViewport, QScrollArea {{ background: {background}; }}")
         self.preview_card.apply_theme_to_card()
         self.preview_card.set_view_mode(self.view_select.currentData())
         metric = self.units_input.currentText() == "metric"
