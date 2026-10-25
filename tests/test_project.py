@@ -97,6 +97,32 @@ class PackagingTests(unittest.TestCase):
 
 
 
+class PlatformStartupTests(unittest.TestCase):
+    def test_linux_with_x_display_defaults_to_xcb(self):
+        from TrayWeatherApp.main import configure_platform
+        with patch("sys.platform", "linux"), patch.dict(os.environ, {"DISPLAY": ":0"}, clear=True):
+            configure_platform()
+            self.assertEqual(os.environ["QT_QPA_PLATFORM"], "xcb")
+
+    def test_explicit_platform_is_preserved(self):
+        from TrayWeatherApp.main import configure_platform
+        for platform in ("wayland", "offscreen", "xcb"):
+            with self.subTest(platform=platform), patch("sys.platform", "linux"), patch.dict(
+                    os.environ, {"DISPLAY": ":0", "QT_QPA_PLATFORM": platform}, clear=True):
+                configure_platform()
+                self.assertEqual(os.environ["QT_QPA_PLATFORM"], platform)
+
+    def test_other_platforms_and_no_x_display_keep_qt_default(self):
+        from TrayWeatherApp.main import configure_platform
+        for platform, environment in [("win32", {"DISPLAY": ":0"}),
+                                      ("darwin", {"DISPLAY": ":0"}),
+                                      ("linux", {"WAYLAND_DISPLAY": "wayland-0"})]:
+            with self.subTest(platform=platform), patch("sys.platform", platform), patch.dict(
+                    os.environ, environment, clear=True):
+                configure_platform()
+                self.assertNotIn("QT_QPA_PLATFORM", os.environ)
+
+
 class ConfigurationTests(unittest.TestCase):
     def test_missing_corrupt_and_saved_settings(self):
         with tempfile.TemporaryDirectory() as directory, patch.object(

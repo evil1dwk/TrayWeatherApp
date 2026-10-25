@@ -14,6 +14,7 @@
 - Add background city search with state/province/country choices and saved coordinates.
 - Deliver weather updates on the GUI thread and ignore stale results after tab/unit changes.
 - Keep active request threads alive until they finish when closing tabs or quitting.
+- Default Linux launches to xcb/XWayland when an X display is available, preserving explicit platform overrides.
 
 Earlier entries record development milestones, not published releases.
 

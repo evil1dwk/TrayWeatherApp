@@ -103,6 +103,24 @@ Builds never increment the version. Release tags should look like `v2.3.0`.
 - `themes/`: optional portable theme ZIP files
 - `dist/`: executable and release archive output (ignored)
 
+## Linux window positioning
+
+On Linux, the application defaults to Qt's xcb backend when DISPLAY is available.
+On a Wayland desktop this uses XWayland, allowing the app to query and restore
+window positions. XWayland and Qt's X11 runtime dependencies must be installed.
+The same startup behavior applies to source and standalone executable launches.
+
+You can test it explicitly:
+
+    QT_QPA_PLATFORM=xcb python -m TrayWeatherApp
+
+An explicit QT_QPA_PLATFORM setting is preserved. To opt back into native Wayland:
+
+    QT_QPA_PLATFORM=wayland python -m TrayWeatherApp
+
+Native Wayland may prevent applications from restoring top-level window positions.
+Window geometry is saved when quitting through the tray menu.
+
 ## Weather freshness and cities
 
 Each weather card shows the last successful download in your computer's local
