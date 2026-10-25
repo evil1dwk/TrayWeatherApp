@@ -97,7 +97,7 @@ class WeatherWindowTests(unittest.TestCase):
         self.assertEqual(self.window.tabs.tabText(0), "Chase City")
         self.assertIn("Virginia", card.city_lbl.toolTip())
         self.window.show()
-        for mode, size in [("normal", (760, 500)), ("compact", (560, 430))]:
+        for mode, size in [("normal", (760, 500)), ("compact", (440, 240))]:
             self.owner.config["view_mode"] = mode
             self.window.apply_view_mode()
             self.qt.processEvents()
@@ -107,5 +107,32 @@ class WeatherWindowTests(unittest.TestCase):
             self.qt.processEvents()
             self.assertEqual((self.window.width(), self.window.height()), size)
             self.assertFalse(card.icon_lbl.isHidden())
-            self.assertGreaterEqual(card.more_lbl.height(), card.more_lbl.heightForWidth(card.more_lbl.width()))
+            if mode == "normal":
+                self.assertGreaterEqual(card.more_lbl.height(), card.more_lbl.heightForWidth(card.more_lbl.width()))
+            else:
+                self.assertFalse(card.compact_icon.isHidden())
+                self.assertTrue(card.normal_panel.isHidden())
+                self.assertEqual(card.compact_city.text(), "Chase City")
+                self.assertIn("High", card.compact_summary.text())
         self.assertIn("<table", card.more_lbl.text())
+
+    def test_compact_summary_tooltips_and_settings_button(self):
+        from TrayWeatherApp.ui_components import GlassCard
+        callback = Mock()
+        owner = SimpleNamespace(theme=self.owner.theme, config={"view_mode": "compact"},
+                                open_settings=callback)
+        card = GlassCard(owner)
+        card.city_lbl.setText("Chase City")
+        card.city_lbl.setToolTip("Chase City, Virginia, United States")
+        card.more_lbl.setText(card.themed_detail_html(65.1, 69, 43.4, 42, 6.5, "F", "mph"))
+        card.temp_lbl.setText("68.7°F")
+        card.sync_compact()
+        self.assertEqual(card.compact_temp.text(), "68.7°F")
+        self.assertIn("Feels 65°", card.compact_summary.text())
+        self.assertNotIn("Humidity", card.compact_summary.text())
+        self.assertIn("Humidity: 42%", card.compact_summary.toolTip())
+        self.assertIn("Wind: 6.5 mph", card.compact_summary.toolTip())
+        self.assertIn("Virginia", card.compact_city.toolTip())
+        card.settings_button.click()
+        callback.assert_called_once()
+        card.deleteLater()

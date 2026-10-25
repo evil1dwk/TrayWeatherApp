@@ -120,6 +120,7 @@ class SettingsDialog(QDialog):
                   else "Built-in theme" if path and path.parent == self.theme_manager.builtin_dir
                   else "Custom / legacy theme")
         self.source_label.setText(source)
+        self.preview_card.sync_compact()
 
     def accept(self):
         # Revalidate in case the file was edited while Settings was open.

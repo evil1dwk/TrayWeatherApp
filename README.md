@@ -128,7 +128,11 @@ weather icon visible and use a fixed window size; manual resizing and maximizing
 are disabled. Save applies and remembers your choice. Cancel leaves the current
 view unchanged. The Settings preview also reflects the selected view.
 
-Normal uses 760 × 500 logical pixels; Compact uses 560 × 430. Existing saved window
+Normal uses 760 × 500 logical pixels; Compact uses 440 × 240.
+Compact is a horizontal summary with a small icon, city, temperature, conditions,
+feels-like/high/low line, and update footer. Hover for the full location,
+humidity, wind, local city time, or detailed update status. The footer gear opens
+Settings. Existing saved window
 positions are retained. Older arbitrary window sizes are replaced by the chosen
 view size.
 

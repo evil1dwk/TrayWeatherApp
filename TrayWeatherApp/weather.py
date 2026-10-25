@@ -60,7 +60,7 @@ class WeatherWindow(QWidget):
     def apply_view_mode(self):
         mode = self.app_ref.config.get("view_mode", "normal")
         compact = mode == "compact"
-        self.setFixedSize(560, 430) if compact else self.setFixedSize(760, 500)
+        self.setFixedSize(440, 240) if compact else self.setFixedSize(760, 500)
         for city, data in self.city_tabs.items():
             data["card"].set_view_mode(mode)
             if "info" in data:
@@ -338,6 +338,8 @@ class WeatherWindow(QWidget):
         card.temp_lbl.setText("-°")
         card.desc_lbl.setText("-")
         card.more_lbl.setText("-")
+        card._compact_summary = "Feels —  ·  High — / Low —"
+        card.compact_summary.setToolTip("")
         data["state"] = "empty"
         self.update_freshness(city)
 
@@ -371,6 +373,17 @@ class WeatherWindow(QWidget):
                     "Waiting for weather")
         card = data["card"]
         card.status_lbl.setText(text)
+        card.sync_compact()
+        compact_text = (f"● Updated {last}" if timestamp and state == "live" and not old else
+                        "● Refreshing…" if state == "refreshing" else
+                        f"● Cached · {last}" if timestamp and state == "cached" else
+                        f"● Stale · {last}" if timestamp and old and state != "error" else
+                        "● Unable to refresh" if state == "error" else
+                        "Waiting for weather")
+        card.compact_status.setText(compact_text)
+        card.compact_status.setToolTip(text + (" · " + data.get("error", "") if data.get("error") else ""))
+        card.compact_status.setStyleSheet(
+            f"color:{'#75C991' if timestamp and state == 'live' and not old else '#E7B76B'}; background:transparent;")
         card.status_lbl.setToolTip(data.get("error", "") or
                                   "Time of the last successful download, shown in your computer's local time.")
         if getattr(self.app_ref, "tray", None) and self.app_ref.cities and city == self.app_ref.cities[0]:

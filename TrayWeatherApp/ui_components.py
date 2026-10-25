@@ -13,7 +13,7 @@ from PyQt6.QtWidgets import (
     QCheckBox,
     QPushButton,
     QSizePolicy,
-    QSpacerItem
+    QSpacerItem, QToolButton
 )
 from PyQt6.QtWidgets import QGraphicsDropShadowEffect
 from TrayWeatherApp.config_utils import log, set_sun_icon, enable_windows_acrylic
@@ -53,13 +53,63 @@ class GlassCard(QWidget):
         self.status_lbl.setTextFormat(Qt.TextFormat.PlainText)
         right.addWidget(self.status_lbl)
         right.addStretch(1)
-        row = QHBoxLayout(self); row.setContentsMargins(26,26,26,26); row.setSpacing(26)
+        self.normal_panel = QWidget()
+        row = QHBoxLayout(self.normal_panel); row.setContentsMargins(26,26,26,26); row.setSpacing(26)
         row.addWidget(self.icon_lbl); row.addLayout(right,1)
         self.icon_lbl.setFixedWidth(150)
         self.city_lbl.setFont(QFont("Segoe UI", 20, QFont.Weight.Bold))
         self.time_lbl.setFont(QFont("Segoe UI", 11))
         self.desc_lbl.setFont(QFont("Segoe UI", 13))
         self.more_lbl.setFont(QFont("Segoe UI", 11))
+        outer = QVBoxLayout(self)
+        outer.setContentsMargins(0, 0, 0, 0)
+        outer.addWidget(self.normal_panel)
+        self.compact_panel = QWidget()
+        compact = QVBoxLayout(self.compact_panel)
+        compact.setContentsMargins(12, 10, 12, 8)
+        compact.setSpacing(4)
+        main_row = QHBoxLayout()
+        main_row.setSpacing(12)
+        self.compact_icon = QLabel("☀️")
+        self.compact_icon.setFixedWidth(54)
+        self.compact_icon.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        main_row.addWidget(self.compact_icon)
+        text = QVBoxLayout()
+        text.setSpacing(1)
+        self.compact_city = QLabel("City")
+        self.compact_city.setTextFormat(Qt.TextFormat.PlainText)
+        self.compact_city.setSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Preferred)
+        text.addWidget(self.compact_city)
+        reading = QHBoxLayout()
+        reading.setSpacing(10)
+        self.compact_temp = QLabel("-°")
+        self.compact_desc = QLabel("-")
+        self.compact_desc.setSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Preferred)
+        reading.addWidget(self.compact_temp)
+        reading.addWidget(self.compact_desc, 1)
+        text.addLayout(reading)
+        main_row.addLayout(text, 1)
+        compact.addLayout(main_row)
+        self.compact_summary = QLabel("Feels —  ·  High — / Low —")
+        self.compact_summary.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        compact.addWidget(self.compact_summary)
+        footer = QHBoxLayout()
+        self.compact_status = QLabel("Waiting for weather")
+        self.compact_status.setSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Preferred)
+        footer.addWidget(self.compact_status, 1)
+        self.settings_button = QToolButton()
+        self.settings_button.setText("⚙")
+        self.settings_button.setToolTip("Settings")
+        self.settings_button.setFixedSize(24, 24)
+        callback = getattr(app_ref, "open_settings", None)
+        if callback:
+            self.settings_button.clicked.connect(callback)
+        else:
+            self.settings_button.setEnabled(False)
+        footer.addWidget(self.settings_button)
+        compact.addLayout(footer)
+        outer.addWidget(self.compact_panel)
+        self._compact_summary = "Feels —  ·  High — / Low —"
         self.apply_theme_to_card()
 
     def apply_theme_to_card(self):
@@ -102,11 +152,20 @@ class GlassCard(QWidget):
             "wind": wind_color,
         }
 
+        for label, color in [(self.compact_city, text_primary), (self.compact_temp, temp_color),
+                             (self.compact_desc, text_desc), (self.compact_summary, text_more),
+                             (self.compact_status, text_muted)]:
+            label.setStyleSheet(f"color:{color}; background:transparent;")
         self.set_view_mode(self.view_mode)
         self.update()
         self.repaint()
 
     def themed_detail_html(self, feels, high, low, humid, wind, units_t, units_w):
+        def short(value):
+            return f"{value:.0f}" if isinstance(value, (int, float)) else "—"
+        self._compact_summary = f"Feels {short(feels)}°  ·  High {short(high)}° / Low {short(low)}°"
+        self.compact_summary.setText(self._compact_summary)
+        self.compact_summary.setToolTip(f"Humidity: {humid}% · Wind: {wind} {units_w}")
         c = self._colors
         column_width = 130 if self.view_mode == "compact" else 170
         return (
@@ -122,9 +181,10 @@ class GlassCard(QWidget):
     def set_view_mode(self, mode):
         self.view_mode = "compact" if mode == "compact" else "normal"
         compact = self.view_mode == "compact"
-        margin = 14 if compact else 22
-        self.layout().setContentsMargins(margin, margin, margin, margin)
-        self.layout().setSpacing(12 if compact else 18)
+        self.normal_panel.layout().setContentsMargins(22, 22, 22, 22)
+        self.normal_panel.layout().setSpacing(18)
+        self.normal_panel.setVisible(not compact)
+        self.compact_panel.setVisible(compact)
         self.icon_lbl.setVisible(True)
         self.icon_lbl.setFixedWidth(90 if compact else 150)
         self.icon_lbl.setFont(QFont("Segoe UI Emoji", 62 if compact else 100))
@@ -133,7 +193,26 @@ class GlassCard(QWidget):
         self.temp_lbl.setFont(QFont("Segoe UI", 30 if compact else 38))
         self.desc_lbl.setFont(QFont("Segoe UI", 11 if compact else 13))
         self.more_lbl.setFont(QFont("Segoe UI", 10 if compact else 11))
-        self.status_lbl.setFont(QFont("Segoe UI", 9 if compact else 10))
+        self.status_lbl.setFont(QFont("Segoe UI", 10))
+        self.compact_icon.setFont(QFont("Segoe UI Emoji", 36))
+        self.compact_city.setFont(QFont("Segoe UI", 13, QFont.Weight.Bold))
+        self.compact_temp.setFont(QFont("Segoe UI", 29))
+        self.compact_desc.setFont(QFont("Segoe UI", 10))
+        self.compact_summary.setFont(QFont("Segoe UI", 9))
+        self.compact_status.setFont(QFont("Segoe UI", 9))
+        self.sync_compact()
+
+    def sync_compact(self):
+        self.compact_city.setText(self.city_lbl.text())
+        self.compact_city.setToolTip(self.city_lbl.toolTip())
+        self.compact_temp.setText(self.temp_lbl.text())
+        self.compact_desc.setText(self.desc_lbl.text())
+        self.compact_desc.setToolTip(self.desc_lbl.text())
+        self.compact_icon.setText(self.icon_lbl.text())
+        self.compact_icon.setToolTip(self.compact_summary.toolTip() + "\n" + self.time_lbl.text())
+        self.compact_summary.setText(self._compact_summary)
+        self.compact_status.setText(self.status_lbl.text())
+        self.compact_status.setToolTip(self.status_lbl.toolTip())
 
     def apply_responsive_layout(self):
         # Kept for callers refreshing an existing card; never hide its icon.
