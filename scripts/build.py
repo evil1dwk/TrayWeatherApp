@@ -59,7 +59,11 @@ def package_release(platform, project_root=ROOT):
         archive = output / f"{name}.tar.gz"
         with tarfile.open(archive, "w:gz") as package:
             for path, member in files:
-                package.add(path, arcname=member)
+                info = package.gettarinfo(str(path), arcname=member)
+                # Archive permissions must not depend on Windows file metadata.
+                info.mode = 0o755 if path == binary else 0o644
+                with path.open("rb") as stream:
+                    package.addfile(info, stream)
     return archive
 
 

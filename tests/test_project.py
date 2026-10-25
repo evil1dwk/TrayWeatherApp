@@ -73,7 +73,7 @@ class PackagingTests(unittest.TestCase):
                 (root / "dist").mkdir()
                 binary = root / "dist" / ("TrayWeatherApp.exe" if platform == "windows" else "TrayWeatherApp")
                 binary.write_bytes(b"standalone application")
-                binary.chmod(0o755)
+                binary.chmod(0o644)  # Simulate a host without Unix executable bits.
                 (root / "themes").mkdir()
                 (root / "themes/Test.zip").write_bytes(b"theme zip")
                 with patch.object(builder, "normalized_architecture", return_value="x86_64"):
@@ -86,7 +86,8 @@ class PackagingTests(unittest.TestCase):
                 else:
                     with tarfile.open(archive) as package:
                         self.assertEqual(set(package.getnames()), {binary.name, "themes/Test.zip"})
-                        self.assertTrue(package.getmember(binary.name).mode & 0o111)
+                        self.assertEqual(package.getmember(binary.name).mode, 0o755)
+                        self.assertEqual(package.getmember("themes/Test.zip").mode, 0o644)
                         self.assertEqual(package.extractfile(binary.name).read(), binary.read_bytes())
 
     def test_missing_binary_cannot_create_release(self):
