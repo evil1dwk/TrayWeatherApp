@@ -144,6 +144,23 @@ Settings. Existing saved window
 positions are retained. Older arbitrary window sizes are replaced by the chosen
 view size.
 
+## Daily forecast
+
+Use **Current / Forecast** below the city tabs. Normal shows five days and
+Compact shows three, without changing the window size or selected city. The
+selection is remembered across cities and restarts.
+
+Each day shows its weather icon and high/low temperatures in your selected unit
+system. Normal also shows precipitation probability; hover over a day in either
+view for its full date, conditions, and precipitation chance. The first day is
+the current date at the selected location, followed by subsequent days.
+
+Forecast data arrives in the same request as current weather and is cached
+together. Switching views does not make another request. Existing caches without
+forecast data show an unavailable message until the next successful refresh.
+Saved forecasts remain visible after a failed refresh, with the shared footer
+showing their age and error state.
+
 ## Weather freshness and cities
 
 Each weather card shows the last successful download in your computer's local

@@ -18,6 +18,7 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtWidgets import QGraphicsDropShadowEffect
 from TrayWeatherApp.config_utils import log, set_sun_icon, enable_windows_acrylic
 from TrayWeatherApp.theme import ThemeManager
+from TrayWeatherApp.forecast import ForecastPanel
 
 # ---------- Glass Card ----------
 class GlassCard(QWidget):
@@ -67,7 +68,7 @@ class GlassCard(QWidget):
         self.compact_panel = QWidget()
         compact = QVBoxLayout(self.compact_panel)
         compact.setContentsMargins(12, 10, 12, 8)
-        compact.setSpacing(4)
+        compact.setSpacing(2)
         main_row = QHBoxLayout()
         main_row.setSpacing(12)
         self.compact_icon = QLabel("☀️")
@@ -122,6 +123,9 @@ class GlassCard(QWidget):
         right.addLayout(normal_footer)
         compact.addLayout(footer)
         outer.addWidget(self.compact_panel)
+        self.forecast_panel = ForecastPanel(app_ref)
+        outer.addWidget(self.forecast_panel)
+        self.forecast_mode = False
         self._compact_summary = "Feels —  ·  High — / Low —"
         self.apply_theme_to_card()
 
@@ -198,8 +202,10 @@ class GlassCard(QWidget):
         self.normal_panel.layout().setSpacing(18)
         self.status_lbl.setVisible(False)
         self.compact_status.setVisible(False)
-        self.normal_panel.setVisible(not compact)
-        self.compact_panel.setVisible(compact)
+        self.normal_panel.setVisible(not compact and not self.forecast_mode)
+        self.compact_panel.setVisible(compact and not self.forecast_mode)
+        self.forecast_panel.setVisible(self.forecast_mode)
+        self.forecast_panel.set_view_mode(self.view_mode)
         self.icon_lbl.setVisible(True)
         self.icon_lbl.setFixedWidth(90 if compact else 150)
         self.icon_lbl.setFont(QFont("Segoe UI Emoji", 62 if compact else 100))
@@ -216,6 +222,10 @@ class GlassCard(QWidget):
         self.compact_summary.setFont(QFont("Segoe UI", 9))
         self.compact_status.setFont(QFont("Segoe UI", 9))
         self.sync_compact()
+
+    def set_forecast_mode(self, enabled):
+        self.forecast_mode = enabled
+        self.set_view_mode(self.view_mode)
 
     def sync_compact(self):
         self.compact_city.setText(self.city_lbl.text())

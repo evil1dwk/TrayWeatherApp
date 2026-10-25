@@ -9,6 +9,8 @@
 - Centralized theme notifications and recolor existing weather details when themes change.
 - Added About TrayWeatherApp with the visible version and project links.
 - Added theme format documentation and regression tests.
+- Add Current / Forecast switching with five daily forecasts in Normal and three in Compact.
+- Fetch and cache forecasts with current weather, including precipitation chance and hover details.
 - Show last successful weather download, freshness, cached/offline state, and refresh errors.
 - Cache successful readings by location and units; preserve them when refresh fails.
 - Add background city search with state/province/country choices and saved coordinates.

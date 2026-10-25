@@ -71,6 +71,7 @@ class WeatherWindow(QWidget):
 
     def apply_view_mode(self):
         mode = self.app_ref.config.get("view_mode", "normal")
+        self.layout().setContentsMargins(10, 8, 10, 10) if mode == "compact" else self.layout().setContentsMargins(18, 18, 18, 18)
         # Let the old fixed-size constraints go before changing child visibility.
         # Otherwise Windows can apply the old Normal layout's minimum height
         # during its native resize, leaving a tall Compact window until dragged.
@@ -268,12 +269,26 @@ class WeatherWindow(QWidget):
         lay = QVBoxLayout(container)
         lay.setContentsMargins(0, 8, 0, 8)
         lay.setSpacing(0)
+        switches = QHBoxLayout()
+        switches.setSpacing(0)
+        current_button = QPushButton("Current")
+        forecast_button = QPushButton("Forecast")
+        for button in (current_button, forecast_button):
+            button.setCheckable(True)
+            button.setFixedHeight(26)
+            button.setMinimumWidth(88)
+            button.setStyleSheet("QPushButton { padding:2px 12px; } QPushButton:checked { border-width:2px; font-weight:bold; }")
+            switches.addWidget(button)
+        switches.addStretch()
+        lay.addLayout(switches)
         card = GlassCard(self.app_ref)
+        current_button.clicked.connect(lambda: self.select_forecast(False))
+        forecast_button.clicked.connect(lambda: self.select_forecast(True))
         for child in [card, *card.findChildren(QWidget)]:
             if not isinstance(child, (QToolButton, QPushButton)):
                 child.installEventFilter(self)
         lay.addWidget(card)
-        lay.addSpacing(8)  # fixed spacing (no dark band)
+        lay.addSpacing(2)
         idx = self.tabs.count() - 1 if self.has_fake_tab() else self.tabs.count()
         location = getattr(self.app_ref, "locations", {}).get(city)
         label = location.get("name", city) if location else city.split(",")[0]
@@ -281,6 +296,7 @@ class WeatherWindow(QWidget):
             self.tabs.insertTab(idx, container, label)
             self.tabs.setCurrentIndex(idx)
         card.city_lbl.setText(label)
+        card.forecast_panel.set_weather({"city": label, "location": location or {}})
         close_btn = QToolButton()
         close_btn.setText("x")
         close_btn.setToolTip("Close tab")
@@ -302,7 +318,23 @@ class WeatherWindow(QWidget):
         """)
         close_btn.clicked.connect(lambda _, w=container: self.remove_tab_by_widget(w))
         self.tabs.tabBar().setTabButton(idx, QTabBar.ButtonPosition.RightSide, close_btn)
-        self.city_tabs[city] = {"card": card, "container": container, "city": city, "state": "empty"}
+        self.city_tabs[city] = {"card": card, "container": container, "city": city, "state": "empty",
+                                "current_button": current_button, "forecast_button": forecast_button}
+
+        self.apply_forecast_selection()
+
+    def apply_forecast_selection(self):
+        enabled = bool(self.app_ref.config.get("forecast_mode", False))
+        for data in self.city_tabs.values():
+            data["current_button"].setChecked(not enabled)
+            data["forecast_button"].setChecked(enabled)
+            data["card"].set_forecast_mode(enabled)
+
+    def select_forecast(self, enabled):
+        self.app_ref.config["forecast_mode"] = bool(enabled)
+        self.apply_forecast_selection()
+        self.app_ref.save_config()
+        self.settle_view_size()
 
     def remove_tab_by_widget(self, widget):
         idx = self.tabs.indexOf(widget)
@@ -365,6 +397,7 @@ class WeatherWindow(QWidget):
             return
 
         self.city_tabs[city]["info"] = info
+        card.forecast_panel.set_weather(info)
         temp_label, wind_label = ("C", "km/h") if self.app_ref.units == "metric" else ("F", "mph")
         tab_idx = self.tabs.indexOf(data["container"])
         full_name = info.get("city", city)
@@ -427,6 +460,7 @@ class WeatherWindow(QWidget):
         if not data:
             return
         data.pop("info", None)
+        data["card"].forecast_panel.set_weather({"city": data["card"].city_lbl.text()})
         card = data["card"]
         card.temp_lbl.setText("-°")
         card.desc_lbl.setText("-")

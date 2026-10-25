@@ -2,6 +2,7 @@
 from datetime import datetime, timezone, timedelta
 from PyQt6.QtCore import QObject, pyqtSignal
 from TrayWeatherApp.weather_cache import valid_weather
+from TrayWeatherApp.forecast import parse_daily
 import requests
 
 # ---------- Weather Worker ----------
@@ -47,7 +48,8 @@ class WeatherWorker(QObject):
                     "temperature_2m", "apparent_temperature",
                     "relative_humidity_2m", "wind_speed_10m", "weather_code"
                 ],
-                "daily": ["temperature_2m_max", "temperature_2m_min", "weather_code"],
+                "daily": ["temperature_2m_max", "temperature_2m_min", "weather_code", "precipitation_probability_max"],
+                "forecast_days": 5,
                 "timezone": "auto",
                 "temperature_unit": temp_unit,
                 "wind_speed_unit": wind_unit,
@@ -83,6 +85,7 @@ class WeatherWorker(QObject):
                 "timezone": tz_offset,
                 "high": (daily.get("temperature_2m_max") or [None])[0],
                 "low": (daily.get("temperature_2m_min") or [None])[0],
+                "forecast": parse_daily(daily, self.map_weather_code),
             }
             if not valid_weather(info):
                 raise ValueError("Weather API returned no valid current temperature.")
@@ -116,7 +119,19 @@ class WeatherWorker(QObject):
             71: ("Light snow", "🌨️"),
             73: ("Snow", "❄️"),
             75: ("Heavy snow", "❄️"),
+            56: ("Light freezing drizzle", "🌧️"),
+            57: ("Freezing drizzle", "🌧️"),
+            66: ("Light freezing rain", "🌧️"),
+            67: ("Freezing rain", "🌧️"),
+            77: ("Snow grains", "🌨️"),
+            80: ("Light showers", "🌦️"),
+            81: ("Showers", "🌧️"),
+            82: ("Heavy showers", "🌧️"),
+            85: ("Light snow showers", "🌨️"),
+            86: ("Snow showers", "❄️"),
             95: ("Thunderstorm", "⛈️"),
+            96: ("Thunderstorm with hail", "⛈️"),
+            99: ("Thunderstorm with heavy hail", "⛈️"),
         }
 
         return mapping.get(code, ("Unknown", "🌍"))
