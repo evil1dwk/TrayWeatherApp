@@ -93,6 +93,40 @@ def create_tray_icon(emoji: str = "☀️") -> QIcon:
     p.end()
     return QIcon(pix)
 
+def format_tray_temperature(temperature):
+    import math
+    if (not isinstance(temperature, (int, float)) or isinstance(temperature, bool)
+            or not math.isfinite(temperature)):
+        return "—"
+    return f"{round(temperature)}°"
+
+
+def create_temperature_icon(temperature):
+    """High-contrast temperature text sized for the tray, without emoji overlap."""
+    from PyQt6.QtCore import QPointF
+    from PyQt6.QtGui import QPainterPath, QPen, QFontMetricsF
+    text = format_tray_temperature(temperature)
+    pixmap = QPixmap(64, 64)
+    pixmap.fill(Qt.GlobalColor.transparent)
+    font = QFont("Segoe UI", weight=QFont.Weight.Bold)
+    for size in range(46, 7, -1):
+        font.setPixelSize(size)
+        metrics = QFontMetricsF(font)
+        if metrics.horizontalAdvance(text) <= 58:
+            break
+    path = QPainterPath()
+    path.addText(QPointF(0, 0), font, text)
+    bounds = path.boundingRect()
+    path.translate(32 - bounds.center().x(), 32 - bounds.center().y())
+    painter = QPainter(pixmap)
+    painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+    painter.setPen(QPen(QColor("#14171C"), 3))
+    painter.setBrush(QColor("#FFFFFF"))
+    painter.drawPath(path)
+    painter.end()
+    return QIcon(pixmap)
+
+
 def set_sun_icon(window):
     pix = QPixmap(64, 64)
     pix.fill(Qt.GlobalColor.transparent)

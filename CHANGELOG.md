@@ -11,6 +11,7 @@
 - Added theme format documentation and regression tests.
 - Add Current / Forecast switching with five daily forecasts in Normal and three in Compact.
 - Fetch and cache forecasts with current weather, including precipitation chance and hover details.
+- Display the leftmost city’s rounded temperature in a high-contrast tray icon.
 - Show last successful weather download, freshness, cached/offline state, and refresh errors.
 - Cache successful readings by location and units; preserve them when refresh fails.
 - Add background city search with state/province/country choices and saved coordinates.

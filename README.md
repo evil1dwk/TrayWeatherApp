@@ -144,6 +144,14 @@ Settings. Existing saved window
 positions are retained. Older arbitrary window sizes are replaced by the chosen
 view size.
 
+## Temperature in the tray
+
+The tray icon displays the rounded temperature for the **leftmost city tab**.
+Drag city tabs to choose which city supplies it. The tooltip shows the full
+location, temperature with units, conditions, and update status. Cached readings
+remain visible offline, with stale/error status in the tooltip. An em dash means
+there is no temperature available yet.
+
 ## Daily forecast
 
 Use **Current / Forecast** below the city tabs. Normal shows five days and

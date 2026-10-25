@@ -13,7 +13,7 @@ from PyQt6.QtWidgets import (
     QCheckBox, QPushButton, QHBoxLayout
 )
 
-from TrayWeatherApp.config_utils import set_sun_icon, create_tray_icon, enable_windows_acrylic, log
+from TrayWeatherApp.config_utils import set_sun_icon, create_tray_icon, enable_windows_acrylic, log, create_temperature_icon
 from TrayWeatherApp.ui_components import GlassCard
 from TrayWeatherApp.city_search import CitySearchDialog
 from TrayWeatherApp.workers import location_label
@@ -36,6 +36,7 @@ class WeatherWindow(QWidget):
         self.tabs = QTabWidget()
         self.tabs.setMovable(True)
         self.tabs.setTabsClosable(True)
+        self.tabs.tabBar().tabMoved.connect(self.tabs_reordered)
         self.tabs.tabCloseRequested.connect(self.remove_tab)
         self.tabs.currentChanged.connect(self.check_fake_tab)
         self.tabs.tabBarClicked.connect(self.click_tab)
@@ -336,6 +337,34 @@ class WeatherWindow(QWidget):
         self.app_ref.save_config()
         self.settle_view_size()
 
+    def tabs_reordered(self, *_):
+        placeholder = next((i for i in range(self.tabs.count()) if self.tabs.tabText(i) == "+"), -1)
+        if placeholder >= 0 and placeholder != self.tabs.count() - 1:
+            with QSignalBlocker(self.tabs), QSignalBlocker(self.tabs.tabBar()):
+                self.tabs.tabBar().moveTab(placeholder, self.tabs.count() - 1)
+        self.app_ref.cities = self.get_tab_city_order()
+        self.app_ref.save_config()
+        self.update_tray_temperature()
+
+    def update_tray_temperature(self):
+        tray = getattr(self.app_ref, "tray", None)
+        if not tray:
+            return
+        cities = self.app_ref.cities
+        if not cities:
+            tray.setIcon(create_temperature_icon(None))
+            tray.setToolTip("TrayWeatherApp · No cities configured")
+            return
+        city = cities[0]
+        data = self.city_tabs.get(city, {})
+        info = data.get("info", {})
+        tray.setIcon(create_temperature_icon(info.get("temp")))
+        name = info.get("city") or getattr(self.app_ref, "locations", {}).get(city, {}).get("name", city)
+        card = data.get("card")
+        temperature = card.temp_lbl.text() if card else "—"
+        state = card.status_lbl.text() if card else "Waiting for weather"
+        tray.setToolTip(f"{name} · {temperature} · {info.get('desc', '-').capitalize()} · {state}")
+
     def remove_tab_by_widget(self, widget):
         idx = self.tabs.indexOf(widget)
         if idx != -1:
@@ -360,6 +389,8 @@ class WeatherWindow(QWidget):
             self.app_ref.cities.remove(city)
             getattr(self.app_ref, "locations", {}).pop(city, None)
             self.app_ref.save_config()
+        self.update_tray_temperature()
+        self.refresh_footer()
 
     def add_fake_tab(self):
         fake = QWidget()
@@ -430,17 +461,6 @@ class WeatherWindow(QWidget):
         card.icon_lbl.setText(emoji)
         card.icon_lbl.setFont(QFont("Segoe UI Emoji", int(s * 0.8)))
         card.icon_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        if getattr(self.app_ref, "tray", None) and self.app_ref.cities:
-            first_city = self.app_ref.cities[0]
-            if city == first_city:
-                emoji_tray = info.get("icon") or "🌍"
-                t = info.get("temp")
-                tt_temp = f"{t:.1f}°" if isinstance(t, (int, float)) else "-°"
-                self.app_ref.tray.setIcon(QIcon())
-                self.app_ref.tray.setIcon(create_tray_icon(emoji_tray))
-                self.app_ref.tray.setToolTip(
-                    f"{info.get('city', first_city)} • {info.get('desc', '-').capitalize()} • {tt_temp}"
-                )
         self.update_card_scaling()
         self.update_freshness(city)
 
@@ -514,9 +534,7 @@ class WeatherWindow(QWidget):
         self.refresh_footer()
         card.status_lbl.setToolTip(data.get("error", "") or
                                   "Time of the last successful download, shown in your computer's local time.")
-        if getattr(self.app_ref, "tray", None) and self.app_ref.cities and city == self.app_ref.cities[0]:
-            info = data.get("info", {})
-            self.app_ref.tray.setToolTip(f"{info.get('city', city)} · {card.temp_lbl.text()} · {text}")
+        self.update_tray_temperature()
 
     def update_card_scaling(self):
         for data in self.city_tabs.values():
