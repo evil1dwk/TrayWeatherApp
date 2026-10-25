@@ -7,6 +7,14 @@ from PyQt6.QtGui import QFont
 from PyQt6.QtWidgets import QWidget, QLabel, QVBoxLayout, QHBoxLayout, QToolButton, QSizePolicy
 
 
+def forecast_font(size, *, emoji=False, bold=False):
+    """Keep typography proportional to the fixed window in Qt logical pixels."""
+    font = QFont("Segoe UI Emoji" if emoji else "Segoe UI")
+    font.setPixelSize(round(size * 4 / 3))
+    font.setBold(bold)
+    return font
+
+
 def number(value):
     return isinstance(value, (int, float)) and not isinstance(value, bool) and math.isfinite(value)
 
@@ -49,6 +57,7 @@ class ForecastPanel(QWidget):
         self.city.setSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Preferred)
         self.box.addWidget(self.city)
         self.subtitle = QLabel("5-day forecast")
+        self.subtitle.setFont(forecast_font(10))
         self.box.addWidget(self.subtitle)
         self.message = QLabel("Forecast unavailable. Refresh weather to download it.")
         self.message.setWordWrap(True)
@@ -103,14 +112,14 @@ class ForecastPanel(QWidget):
         full = self.info.get("city", "City")
         self.city.setText(location.get("name") or full.split(",")[0])
         self.city.setToolTip(full)
-        self.city.setFont(QFont("Segoe UI", 11 if compact else 20, QFont.Weight.Bold))
+        self.city.setFont(forecast_font(11 if compact else 20, bold=True))
         self.city.setStyleSheet(f"color:{theme.value('text_primary')}; background:transparent;")
         self.subtitle.setVisible(not compact)
         self.subtitle.setStyleSheet(f"color:{theme.value('text_muted')}; background:transparent;")
         days = self.info.get("forecast", [])
         days = days if isinstance(days, list) else []
         self.message.setVisible(not days)
-        self.message.setFont(QFont("Segoe UI", 9 if compact else 11))
+        self.message.setFont(forecast_font(9 if compact else 11))
         self.message.setStyleSheet(f"color:{theme.value('text_muted')}; background:transparent;")
         for index, (widget, labels) in enumerate(self.columns):
             visible = index < len(days) and index < 5
@@ -147,5 +156,5 @@ class ForecastPanel(QWidget):
                 (probability, "text_muted", 9 if compact else 11),
             ]:
                 label.setStyleSheet(f"color:{theme.value(color)}; background:transparent;")
-                label.setFont(QFont("Segoe UI Emoji" if label is icon else "Segoe UI", size))
+                label.setFont(forecast_font(size, emoji=label is icon))
                 label.setToolTip(tooltip)

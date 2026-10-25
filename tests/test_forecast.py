@@ -85,6 +85,10 @@ class ForecastTests(unittest.TestCase):
             self.assertEqual((self.window.width(),self.window.height()),size)
             self.assertGreaterEqual(panel.height(),panel.minimumSizeHint().height())
             self.assertGreaterEqual(panel.width(),panel.minimumSizeHint().width())
+            for widget, labels in panel.columns:
+                for label in labels:
+                    self.assertGreater(label.font().pixelSize(), 0)
+            self.assertGreater(panel.city.font().pixelSize(), 0)
             self.assertIn("80%",panel.columns[1][0].toolTip())
             self.assertEqual(panel.columns[1][1][4].isHidden(),mode=="compact")
             self.window.select_forecast(False)
