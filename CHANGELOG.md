@@ -2,13 +2,16 @@
 
 ## 2.3.0 — planned first release
 
+- Remember the selected city when hiding or quitting and restore it on startup.
+- Remove Settings scrolling; omit the preview on short screens so controls stay accessible.
+- Refresh Light, Dark, and transparent screenshots in the README.
 - Add background opacity (60–100%) and optional 20 px rounded window corners in Settings; text remains opaque.
 - Replaced generated theme ZIPs with eight bundled, validated JSON presets.
 - Added System appearance, custom theme import/export, and a custom themes folder.
 - Added an isolated Settings preview; Save applies a theme and Cancel preserves the active theme.
 - Preserve legacy ZIP imports, optional CSS, and existing saved theme selections.
 - Centralized theme notifications and recolor existing weather details when themes change.
-- Added About TrayWeatherApp with the visible version and project links.
+- Added About in the bottom-left of Settings with the visible version and project links.
 - Added theme format documentation and regression tests.
 - Add Current / Forecast switching with five daily forecasts in both Normal and Compact.
 - Fetch and cache forecasts with current weather, including precipitation chance and hover details.

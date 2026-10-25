@@ -27,9 +27,9 @@ Background opacity is adjustable in Settings. Text and weather icons stay fully 
 - 🎨 **Customizable themes** (Dark, Light, Beach, etc.)  
 - ⚙️ **Settings persistence** — city, units, theme, and window layout are saved  
 - 📍 **Tray icon controls** — right-click for menu options:
-  - *Refresh Weather*
-  - *Change City*
-  - *Switch Theme*
+  - *Show/Hide Window*
+  - *Refresh*
+  - *Settings*
   - *Quit*
 - 💾 **Local configuration** saved under your user profile
 - 🖥️ **Cross-platform support** — works on both Windows and Linux
@@ -103,6 +103,12 @@ Current version: **2.3.0**. This is the target for the first published release.
 metadata, the application, and release archive names. Use **MAJOR.MINOR.PATCH**:
 major for incompatible changes, minor for compatible additions, patch for fixes.
 Builds never increment the version. Release tags should look like `v2.3.0`.
+After changing the version, reinstall the editable package with
+`python -m pip install -e .` (or `-e ".[build]"`) to refresh installed metadata.
+
+Before publishing, merge the release PR, pull `main`, run the tests, and build on
+each target OS. Create tag `v2.3.0` from the tested commit and attach the versioned
+ZIP and tar.gz archives from `dist/` to the GitHub release.
 
 ## Project layout
 
@@ -138,7 +144,8 @@ Window geometry is saved when quitting through the tray menu.
 The weather panel has no title bar or minimize/maximize/close buttons. Click the
 tray icon to show or hide it, and drag the panel background or weather text to
 move it. Tab buttons, Settings gears, and links keep their usual actions.
-Positions are saved when hiding or quitting. Use **Quit** in the tray menu to
+Positions and the selected city tab are saved when hiding or quitting.
+Startup restores that city, or the first tab if the saved city is unavailable. Use **Quit** in the tray menu to
 exit; Alt+F4 hides the panel. Settings and other dialogs retain normal controls.
 
 ## Normal and Compact views
@@ -146,7 +153,8 @@ exit; Alt+F4 hides the panel. Settings and other dialogs retain normal controls.
 Choose **Normal** or **Compact** under **View** in Settings. Both layouts keep the
 weather icon visible and use a fixed window size; manual resizing and maximizing
 are disabled. Save applies and remembers your choice. Cancel leaves the current
-view unchanged. The Settings preview also reflects the selected view.
+view unchanged. The Settings preview also reflects the selected view when enough screen space is available.
+Settings has no scroll area; on short screens the preview is hidden to keep controls accessible.
 
 Normal uses 760 × 500 logical pixels; Compact uses 440 × 240.
 Compact is a horizontal summary with a small icon, city, temperature, conditions,
@@ -155,6 +163,14 @@ humidity, wind, local city time, or detailed update status. The footer gear open
 Settings. Existing saved window
 positions are retained. Older arbitrary window sizes are replaced by the chosen
 view size.
+
+## Appearance
+
+Settings offers **Background opacity** from 60–100% (default 100%) and
+**Rounded window corners** (enabled by default, 20 logical pixels).
+Background transparency leaves text and icons fully opaque. Save applies and
+remembers the choices; Cancel preserves the current appearance. The preview
+reflects both options when visible. Desktop compositing is needed for transparency.
 
 ## Tray display
 
@@ -215,7 +231,7 @@ Built-in themes ship inside the application. Custom themes live under
 ~/.TrayWeatherApp/pyqt_tray_weather.json (under your user profile on Windows).
 See [Theme format and compatibility](docs/themes.md) for examples and details.
 
-The tray menu's **About TrayWeatherApp** shows the current application version,
+The **About** button at the bottom-left of Settings shows the current application version,
 creator, project link, and issue link.
 
 ---
@@ -228,7 +244,13 @@ TrayWeatherApp saves user settings in a JSON file:
   "cities": ["New York"],
   "units": "imperial",
   "window_pos": [722, 575],
-  "window_size": [1195, 425],
+  "window_size": [760, 500],
+  "view_mode": "normal",
+  "tray_display": "icon",
+  "selected_city": "New York",
+  "forecast_mode": false,
+  "background_opacity": 100,
+  "rounded_corners": true,
   "debug": false,
   "time_format_24h": false,
   "theme": "Dark"
