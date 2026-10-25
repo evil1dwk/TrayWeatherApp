@@ -211,3 +211,15 @@ class WeatherWindowTests(unittest.TestCase):
         with patch.object(self.window, "windowHandle", return_value=handle):
             QTest.mousePress(self.window.city_tabs["Boston"]["card"].city_lbl, Qt.MouseButton.LeftButton)
         handle.startSystemMove.assert_called_once()
+
+    def test_drag_filter_does_not_paint_gradients_behind_labels(self):
+        from PyQt6.QtCore import QEvent
+        data = self.window.city_tabs["Boston"]
+        with patch("TrayWeatherApp.weather.QPainter") as painter:
+            for widget in (data["card"], data["card"].compact_city,
+                           data["card"].compact_temp, data["card"].more_lbl):
+                self.window.eventFilter(widget, QEvent(QEvent.Type.Paint))
+            painter.assert_not_called()
+            self.window.eventFilter(data["container"], QEvent(QEvent.Type.Paint))
+            painter.assert_called_once_with(data["container"])
+            painter.return_value.end.assert_called_once()

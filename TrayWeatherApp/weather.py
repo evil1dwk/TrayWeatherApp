@@ -191,13 +191,17 @@ class WeatherWindow(QWidget):
     def eventFilter(self, obj, event):
         if self.handle_window_drag(event):
             return True
-        if event.type() == event.Type.Paint and isinstance(obj, QWidget):
+        # Drag filters also watch labels and cards. Only tab containers need
+        # a background gradient; painting it on each label creates dark bands.
+        is_container = any(obj is data["container"] for data in self.city_tabs.values())
+        if event.type() == QEvent.Type.Paint and is_container:
             p = QPainter(obj)
             g = QLinearGradient(0, 0, 0, obj.height())
             c0, c1 = self.app_ref.theme.value("background_gradient", ["#12141A", "#1A2036"])
             g.setColorAt(0, self.app_ref.theme.parse_color(c0))
             g.setColorAt(1, self.app_ref.theme.parse_color(c1))
             p.fillRect(obj.rect(), g)
+            p.end()
             return False
         return super().eventFilter(obj, event)
 
