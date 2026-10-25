@@ -37,7 +37,6 @@ class TrayWeatherApp(QObject):
         menu.addAction("Show/Hide Window", self.toggle_window)
         menu.addAction("Refresh", self.fetch_weather_now)
         menu.addAction("Settings", self.open_settings)
-        menu.addAction("About TrayWeatherApp", self.show_about)
         menu.addAction("Quit", self.quit_app)
         self.tray.setContextMenu(menu)
         self.tray.show()
@@ -228,15 +227,6 @@ class TrayWeatherApp(QObject):
             for data in self.window.city_tabs.values():
                 self.window.update_card_time(data["card"])
             self.fetch_weather_now()
-
-    def show_about(self):
-        from ._version import __version__
-        QMessageBox.about(
-            self.window, "About TrayWeatherApp",
-            f"<h3>TrayWeatherApp {__version__}</h3>"
-            "<p>Created by evil1dwk</p><p>Weather data from Open-Meteo.</p>"
-            "<p><a href='https://github.com/evil1dwk/TrayWeatherApp'>Project</a>"
-            " · <a href='https://github.com/evil1dwk/TrayWeatherApp/issues'>Report an issue</a></p>")
 
     def quit_app(self):
         log("Saving window geometry and city order before quitting")

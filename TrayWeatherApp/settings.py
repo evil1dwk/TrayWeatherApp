@@ -93,6 +93,9 @@ class SettingsDialog(QDialog):
         self.error_label.setWordWrap(True)
         layout.addWidget(self.error_label)
         buttons = QHBoxLayout()
+        self.about_button = QPushButton("About")
+        self.about_button.clicked.connect(self.show_about)
+        buttons.addWidget(self.about_button)
         buttons.addStretch()
         self.cancel_button = QPushButton("Cancel")
         self.save_button = QPushButton("Save")
@@ -107,6 +110,15 @@ class SettingsDialog(QDialog):
         self.view_select.currentIndexChanged.connect(self.update_preview)
         self.update_preview()
         self.fit_to_screen()
+
+    def show_about(self):
+        from ._version import __version__
+        QMessageBox.about(
+            self, "About TrayWeatherApp",
+            f"<h3>TrayWeatherApp {__version__}</h3>"
+            "<p>Created by evil1dwk</p><p>Weather data from Open-Meteo.</p>"
+            "<p><a href='https://github.com/evil1dwk/TrayWeatherApp'>Project</a>"
+            " · <a href='https://github.com/evil1dwk/TrayWeatherApp/issues'>Report an issue</a></p>")
 
     def fit_to_screen(self):
         available = self._settings_screen.availableGeometry()

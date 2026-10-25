@@ -163,18 +163,19 @@ class ThemeSystemTests(unittest.TestCase):
                 self.manager.import_theme(path)
 
     def test_imported_json_and_about_version(self):
-        from TrayWeatherApp.app import TrayWeatherApp
         from TrayWeatherApp._version import __version__
         source = self.root / "import.json"
         source.write_text('{"name":"My Ocean","link_color":"#80CBC4"}')
         name = self.manager.import_theme(source)
         self.manager.load_theme(name)
         self.assertEqual(self.manager.value("link_color"), "#80CBC4")
-        obj = TrayWeatherApp.__new__(TrayWeatherApp)
-        obj.window = None
-        with patch("TrayWeatherApp.app.QMessageBox.about") as about:
-            obj.show_about()
+        dialog = SettingsDialog({}, self.manager)
+        with patch("TrayWeatherApp.settings.QMessageBox.about") as about:
+            dialog.about_button.click()
+        self.assertIs(about.call_args.args[0], dialog)
         self.assertIn(__version__, about.call_args.args[2])
+        self.assertEqual(dialog.result(), 0)
+        dialog.deleteLater()
 
     def test_view_preview_is_isolated_until_save(self):
         config = {"view_mode": "normal"}
