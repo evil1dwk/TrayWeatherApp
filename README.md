@@ -63,8 +63,8 @@ python scripts/build.py --verbose
 Build on the target operating system. The executable and release archive go to
 `dist/`:
 
-- Windows: `TrayWeatherApp.exe` and `TrayWeatherApp-2.2.0-windows-<arch>.zip`
-- Linux: `TrayWeatherApp` and `TrayWeatherApp-2.2.0-linux-<arch>.tar.gz`
+- Windows: `TrayWeatherApp.exe` and `TrayWeatherApp-2.2.1-windows-<arch>.zip`
+- Linux: `TrayWeatherApp` and `TrayWeatherApp-2.2.1-linux-<arch>.tar.gz`
 
 There is no Windows installer step. Archives contain the standalone executable
 and any optional theme ZIPs from `themes/`. Extract before launching. Linux
@@ -84,12 +84,12 @@ python -m pip wheel . --no-deps --wheel-dir dist
 
 ## Versioning
 
-Current version: **2.2.0**. The previous version, **2.1.4**, already used three parts.
+Current version: **2.2.1**. This patch fixes a crash when saving Settings after closing a city tab.
 
 `TrayWeatherApp/_version.py` is the single version source for Python package
 metadata, the application, and release archive names. Use **MAJOR.MINOR.PATCH**:
 major for incompatible changes, minor for compatible additions, patch for fixes.
-Builds never increment the version. Release tags should look like `v2.2.0`.
+Builds never increment the version. Release tags should look like `v2.2.1`.
 
 ## Project layout
 

@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.2.1
+
+- Fix a crash when saving Settings after closing a city tab whose displayed name changed after a weather update.
+- Clean up the original city record and background job when closing a renamed tab.
+- Keep the add-city placeholder when closing tabs, without opening an unexpected Add City dialog.
+- Add offscreen Qt regression tests for tab removal and Settings updates.
+
 ## 2.2.0
 
 - Added editable Python package installation and optional build dependencies.
