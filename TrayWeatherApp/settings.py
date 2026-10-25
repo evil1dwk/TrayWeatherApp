@@ -1,120 +1,155 @@
-# TrayWeatherApp module: settings.py
+"""Settings with an isolated theme preview; only Save changes the live theme."""
+from types import SimpleNamespace
 
-from datetime import datetime, timezone, timedelta
-from PyQt6.QtCore import Qt, QTimer
-from PyQt6.QtGui import (
-    QPixmap, QFont, QIcon, QPainter, QLinearGradient, QColor,
-    QPainterPath
-)
+from PyQt6.QtCore import QUrl
+from PyQt6.QtGui import QDesktopServices
 from PyQt6.QtWidgets import (
-    QWidget, QVBoxLayout, QTabWidget, QInputDialog, QToolButton, QTabBar,
-    QLabel, QSizePolicy, QSpacerItem, QDialog, QFormLayout, QComboBox,
-    QCheckBox, QPushButton, QHBoxLayout
+    QDialog, QVBoxLayout, QHBoxLayout, QFormLayout, QComboBox, QCheckBox,
+    QPushButton, QLabel, QFileDialog, QMessageBox, QFrame,
 )
-from TrayWeatherApp.config_utils import set_sun_icon, create_tray_icon, enable_windows_acrylic, log
+from TrayWeatherApp.config_utils import set_sun_icon
+from TrayWeatherApp.theme import ThemeManager, ThemeError
+from TrayWeatherApp.ui_components import GlassCard
 
-# ---------- Settings Dialog ----------
+
 class SettingsDialog(QDialog):
-    def __init__(self, config, theme_manager: "ThemeManager"):
+    def __init__(self, config, theme_manager):
         super().__init__()
         self.setWindowTitle("Settings")
         set_sun_icon(self)
-        self.resize(320, 180)
+        self.resize(640, 550)
         self.theme_manager = theme_manager
-
+        self.preview_theme = ThemeManager(theme_manager.custom_dir,
+                                          theme_manager.builtin_dir,
+                                          theme_manager.legacy_dirs)
         self.units_input = QComboBox()
         self.units_input.addItems(["metric", "imperial"])
-        self.units_input.setCurrentText(config.get("units", "metric"))
-
+        self.units_input.setCurrentText(config.get("units", "imperial"))
         self.time_cb = QCheckBox("Use 24-hour clock")
-        self.time_cb.setChecked(config.get("time_format_24h", True))
-
+        self.time_cb.setChecked(config.get("time_format_24h", False))
         self.debug_cb = QCheckBox("Enable debug logging")
-        self.debug_cb.setChecked(config.get("debug", True))
-
+        self.debug_cb.setChecked(config.get("debug", False))
         self.theme_select = QComboBox()
-        names = self.theme_manager.list_themes()
-        if not names:
-            self.theme_select.addItem("(no themes found)")
-            self.theme_select.setEnabled(False)
-        else:
-            self.theme_select.addItems(names)
-            current = config.get("theme", names[0])
-            if current in names:
-                self.theme_select.setCurrentText(current)
-
+        self.theme_select.addItems(theme_manager.list_themes())
+        current = theme_manager.current_name
+        self.theme_select.setCurrentText(current)
         form = QFormLayout()
         form.addRow("Units", self.units_input)
         form.addRow("Theme", self.theme_select)
         form.addRow(self.time_cb)
         form.addRow(self.debug_cb)
+        layout = QVBoxLayout(self)
+        layout.addLayout(form)
+        if theme_manager.last_error:
+            warning = QLabel(f"Saved theme unavailable; using Dark. {theme_manager.last_error}")
+            warning.setWordWrap(True)
+            layout.addWidget(warning)
 
-        save, cancel = QPushButton("Save"), QPushButton("Cancel")
-        save.clicked.connect(self.accept)
-        cancel.clicked.connect(self.reject)
-        btns = QHBoxLayout()
-        btns.addStretch(1)
-        btns.addWidget(cancel)
-        btns.addWidget(save)
-        lay = QVBoxLayout()
-        lay.addLayout(form)
-        lay.addLayout(btns)
-        self.setLayout(lay)
-        self.apply_theme_to_dialog()
+        tools = QHBoxLayout()
+        for label, callback in [("Import Theme…", self.import_theme),
+                                 ("Export Theme…", self.export_theme),
+                                 ("Open Themes Folder", self.open_themes_folder)]:
+            button = QPushButton(label)
+            button.clicked.connect(callback)
+            tools.addWidget(button)
+        layout.addLayout(tools)
+        self.source_label = QLabel()
+        self.source_label.setWordWrap(True)
+        layout.addWidget(self.source_label)
+        layout.addWidget(QLabel("Preview — Save applies this theme to the app."))
+        self.preview_frame = QFrame()
+        self.preview_frame.setObjectName("ThemePreview")
+        preview_layout = QVBoxLayout(self.preview_frame)
+        self.preview_card = GlassCard(SimpleNamespace(theme=self.preview_theme))
+        self.preview_card.city_lbl.setText("New York")
+        self.preview_card.time_lbl.setText("🕒 10:30 AM")
+        self.preview_card.desc_lbl.setText("Partly cloudy")
+        preview_layout.addWidget(self.preview_card)
+        layout.addWidget(self.preview_frame)
+        self.error_label = QLabel()
+        self.error_label.setWordWrap(True)
+        layout.addWidget(self.error_label)
+        buttons = QHBoxLayout()
+        buttons.addStretch()
+        self.cancel_button = QPushButton("Cancel")
+        self.save_button = QPushButton("Save")
+        self.cancel_button.clicked.connect(self.reject)
+        self.save_button.clicked.connect(self.accept)
+        buttons.addWidget(self.cancel_button)
+        buttons.addWidget(self.save_button)
+        layout.addLayout(buttons)
+        self.theme_select.currentTextChanged.connect(self.update_preview)
+        self.units_input.currentTextChanged.connect(self.update_preview)
+        self.time_cb.toggled.connect(self.update_preview)
+        self.update_preview()
 
-    def apply_theme_to_dialog(self):
-        t = self.theme_manager
-        bg = t.value("glass_card_color", "rgba(20,22,30,150)")
-        text = t.value("text_primary", "#E6E8EE")
-        accent = t.value("link_color", "#7DD3FC")
+    def update_preview(self, *_):
+        name = self.theme_select.currentText()
+        try:
+            self.preview_theme.load_theme(name)
+        except (ThemeError, FileNotFoundError) as exc:
+            self.error_label.setText(f"Cannot use this theme: {exc}")
+            self.save_button.setEnabled(False)
+            return
+        self.error_label.clear()
+        self.save_button.setEnabled(True)
+        self.setStyleSheet(self.preview_theme.stylesheet())
+        self.preview_card.apply_theme_to_card()
+        metric = self.units_input.currentText() == "metric"
+        temperature, wind = ("C", "km/h") if metric else ("F", "mph")
+        self.preview_card.temp_lbl.setText("21.0°C" if metric else "69.8°F")
+        self.preview_card.time_lbl.setText("🕒 10:30" if self.time_cb.isChecked() else "🕒 10:30 AM")
+        self.preview_card.more_lbl.setText(self.preview_card.themed_detail_html(
+            21 if metric else 70, 24 if metric else 75, 16 if metric else 61,
+            55, 12 if metric else 7, temperature, wind))
+        gradient = self.preview_theme.value("background_gradient")
+        colors = [self.preview_theme.parse_color(c).name() for c in gradient]
+        self.preview_frame.setStyleSheet(
+            f"QFrame#ThemePreview {{ background: qlineargradient(x1:0,y1:0,x2:0,y2:1,stop:0 {colors[0]},stop:1 {colors[1]}); }}")
+        catalog = self.theme_manager.catalog()
+        path = catalog.get(name)
+        source = ("Follows the operating system's Light/Dark preference." if name == "System"
+                  else "Built-in theme" if path and path.parent == self.theme_manager.builtin_dir
+                  else "Custom / legacy theme")
+        self.source_label.setText(source)
 
-        bright_theme = any(name in t.value("name", "").lower() for name in ["light", "beach", "sand", "day"])
-        if bright_theme:
-            bg = "rgba(255,255,255,0.95)"
-            text = "#1B263B"
-            accent = "#0D47A1"
+    def accept(self):
+        # Revalidate in case the file was edited while Settings was open.
+        self.update_preview()
+        if self.save_button.isEnabled():
+            super().accept()
 
-        qss = f"""
-        QDialog {{
-            background-color: {bg};
-            color: {text};
-            font-family: "Segoe UI";
-        }}
-        QLabel, QCheckBox {{
-            color: {text};
-        }}
-        QComboBox, QLineEdit {{
-            background: {'rgba(255,255,255,0.9)' if bright_theme else 'rgba(255,255,255,0.05)'};
-            color: {text};
-            border: 1px solid {'rgba(0,0,0,0.2)' if bright_theme else 'rgba(255,255,255,0.15)'};
-            border-radius: 6px;
-            padding: 4px 8px;
-        }}
-        QComboBox QAbstractItemView {{
-            background: {'white' if bright_theme else '#232323'};
-            color: {text};
-            selection-background-color: {'#E0E0E0' if bright_theme else '#444'};
-        }}
-        QPushButton {{
-            background-color: {accent};
-            color: white;
-            border: none;
-            border-radius: 8px;
-            padding: 6px 12px;
-        }}
-        QPushButton:hover {{
-            background-color: {accent}CC;
-        }}
-        QPushButton:pressed {{
-            background-color: {accent}99;
-        }}
-        """
-        self.setStyleSheet(qss)
+    def import_theme(self):
+        path, _ = QFileDialog.getOpenFileName(self, "Import Theme", "", "Themes (*.json *.zip)")
+        if not path:
+            return
+        try:
+            name = self.theme_manager.import_theme(path)
+        except (ThemeError, OSError) as exc:
+            QMessageBox.warning(self, "Theme import failed", str(exc))
+            return
+        self.theme_select.clear()
+        self.theme_select.addItems(self.theme_manager.list_themes())
+        self.theme_select.setCurrentText(name)
+
+    def export_theme(self):
+        path, _ = QFileDialog.getSaveFileName(self, "Export Theme", "theme.json", "JSON theme (*.json)")
+        if not path:
+            return
+        try:
+            self.theme_manager.export_theme(self.theme_select.currentText(), path)
+        except (ThemeError, FileNotFoundError, OSError) as exc:
+            QMessageBox.warning(self, "Theme export failed", str(exc))
+
+    def open_themes_folder(self):
+        self.theme_manager.custom_dir.mkdir(parents=True, exist_ok=True)
+        if not QDesktopServices.openUrl(QUrl.fromLocalFile(str(self.theme_manager.custom_dir))):
+            QMessageBox.information(self, "Themes Folder", str(self.theme_manager.custom_dir))
 
     def get_values(self):
         return {
             "units": self.units_input.currentText(),
             "time_format_24h": self.time_cb.isChecked(),
             "debug": self.debug_cb.isChecked(),
-            "theme": self.theme_select.currentText() if self.theme_select.isEnabled() else None
+            "theme": self.theme_select.currentText(),
         }

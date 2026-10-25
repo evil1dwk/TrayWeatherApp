@@ -117,7 +117,8 @@ class ThemeTests(unittest.TestCase):
                 archive.writestr("Test.css", "QWidget { color: red; }")
                 archive.writestr("Test.json", '{"text_primary": "#ffffff"}')
             manager = ThemeManager()
-            self.assertEqual(manager.list_themes(), ["Test"])
+            self.assertIn("Test", manager.list_themes())
+            self.assertIn("System", manager.list_themes())
             manager.load_theme("Test")
             self.assertEqual(manager.value("text_primary"), "#ffffff")
             with self.assertRaises(FileNotFoundError):

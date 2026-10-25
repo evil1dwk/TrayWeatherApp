@@ -1,0 +1,25 @@
+{
+  "name": "Beach",
+  "background_gradient": [
+    "#EAE3D2",
+    "#A2D9CE"
+  ],
+  "glass_card_color": "rgba(255,255,255,180)",
+  "card_border_color": "rgba(3,62,91,40)",
+  "text_primary": "#033E5B",
+  "text_muted": "#005F73",
+  "text_desc": "#0077B6",
+  "text_more": "#0096C7",
+  "temp_color": "#FFB703",
+  "high_color": "#FB8500",
+  "low_color": "#00A896",
+  "humid_color": "#0096C7",
+  "wind_color": "#007F73",
+  "accent_glow": "#F4A261",
+  "link_color": "#0077B6",
+  "tab_bg": "rgba(255,255,255,0.4)",
+  "tab_bg_selected": "rgba(255,255,255,0.7)",
+  "tab_text": "#033E5B",
+  "tab_border": "rgba(3,62,91,0.3)",
+  "schema_version": 1
+}

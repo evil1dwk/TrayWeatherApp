@@ -46,7 +46,8 @@ The module name is case-sensitive on Linux.
 python -m unittest discover -s tests -v
 ```
 
-Tests mock weather requests and use temporary settings/theme directories; no API
+Tests include offscreen Qt widget checks, mock weather requests, and use temporary
+settings/theme directories; no API
 access or running desktop is required. A manual **Unit tests** GitHub Actions
 workflow covers Windows, Linux, and macOS with Python 3.11 and 3.14.
 macOS test coverage does not imply a supported macOS executable build.
@@ -63,13 +64,13 @@ python scripts/build.py --verbose
 Build on the target operating system. The executable and release archive go to
 `dist/`:
 
-- Windows: `TrayWeatherApp.exe` and `TrayWeatherApp-2.2.1-windows-<arch>.zip`
-- Linux: `TrayWeatherApp` and `TrayWeatherApp-2.2.1-linux-<arch>.tar.gz`
+- Windows: `TrayWeatherApp.exe` and `TrayWeatherApp-2.3.0-windows-<arch>.zip`
+- Linux: `TrayWeatherApp` and `TrayWeatherApp-2.3.0-linux-<arch>.tar.gz`
 
 There is no Windows installer step. Archives contain the standalone executable
 and any optional theme ZIPs from `themes/`. Extract before launching. Linux
-archives preserve executable permissions. Without portable themes, the app
-generates default themes in the user profile.
+archives preserve executable permissions. Built-in themes are included inside the executable; no writable application
+folder is required.
 
 The build script resolves paths from its own location, so it also works when
 invoked by absolute path from another directory. Platform configurations live
@@ -84,12 +85,12 @@ python -m pip wheel . --no-deps --wheel-dir dist
 
 ## Versioning
 
-Current version: **2.2.1**. This patch fixes a crash when saving Settings after closing a city tab.
+Current version: **2.3.0**. This is the target for the first published release.
 
 `TrayWeatherApp/_version.py` is the single version source for Python package
 metadata, the application, and release archive names. Use **MAJOR.MINOR.PATCH**:
 major for incompatible changes, minor for compatible additions, patch for fixes.
-Builds never increment the version. Release tags should look like `v2.2.1`.
+Builds never increment the version. Release tags should look like `v2.3.0`.
 
 ## Project layout
 
@@ -102,11 +103,23 @@ Builds never increment the version. Release tags should look like `v2.2.1`.
 - `themes/`: optional portable theme ZIP files
 - `dist/`: executable and release archive output (ignored)
 
-Settings retain their existing location:
-`~/.TrayWeatherApp/pyqt_tray_weather.json` (under the user profile on Windows).
-Existing theme ZIPs beside the source or executable remain usable. Otherwise,
-default themes are generated under `~/.TrayWeatherApp/themes/`, which is
-writable for installed applications.
+## Themes
+
+Choose **System**, **Light**, **Dark**, or one of the other bundled presets in
+Settings. System follows the OS appearance preference when available, with Dark
+as its fallback. Existing saved selections are retained.
+
+Settings shows a sample weather card before you Save. Cancel leaves the running
+theme unchanged. Use **Import Theme**, **Export Theme**, and **Open Themes Folder**
+to manage custom JSON themes or import existing theme ZIPs.
+
+Built-in themes ship inside the application. Custom themes live under
+~/.TrayWeatherApp/themes/; settings retain their existing location at
+~/.TrayWeatherApp/pyqt_tray_weather.json (under your user profile on Windows).
+See [Theme format and compatibility](docs/themes.md) for examples and details.
+
+The tray menu's **About TrayWeatherApp** shows the current application version,
+creator, project link, and issue link.
 
 ---
 

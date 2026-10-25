@@ -96,8 +96,8 @@ class WeatherWindow(QWidget):
             p = QPainter(obj)
             g = QLinearGradient(0, 0, 0, obj.height())
             c0, c1 = self.app_ref.theme.value("background_gradient", ["#12141A", "#1A2036"])
-            g.setColorAt(0, QColor(c0))
-            g.setColorAt(1, QColor(c1))
+            g.setColorAt(0, self.app_ref.theme.parse_color(c0))
+            g.setColorAt(1, self.app_ref.theme.parse_color(c1))
             p.fillRect(obj.rect(), g)
             return False
         return super().eventFilter(obj, event)
@@ -111,6 +111,10 @@ class WeatherWindow(QWidget):
                 card.apply_theme_to_card()
                 card.update()
                 card.repaint()
+        # Rebuild rich text using the new accent colors as well as label styles.
+        for city, data in list(self.city_tabs.items()):
+            if "info" in data:
+                self.update_city_tab(city, data["info"])
         self.update()
         self.repaint()
 
@@ -118,8 +122,8 @@ class WeatherWindow(QWidget):
         p = QPainter(self)
         g = QLinearGradient(0, 0, 0, self.height())
         col0, col1 = self.app_ref.theme.value("background_gradient", ["#12141A", "#1A2036"])
-        g.setColorAt(0, QColor(col0))
-        g.setColorAt(1, QColor(col1))
+        g.setColorAt(0, self.app_ref.theme.parse_color(col0))
+        g.setColorAt(1, self.app_ref.theme.parse_color(col1))
         p.fillRect(self.rect(), g)
 
     def resizeEvent(self, e):

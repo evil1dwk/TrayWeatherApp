@@ -25,8 +25,7 @@ CONFIG_PATH = Path.home() / ".TrayWeatherApp" / "pyqt_tray_weather.json"
 LOG_PATH = CONFIG_PATH.with_name("pyqt_tray_weather.log")
 BASE_DIR = get_base_path()
 PORTABLE_THEMES_DIR = BASE_DIR / "themes"
-THEMES_DIR = (PORTABLE_THEMES_DIR if any(PORTABLE_THEMES_DIR.glob("*.zip"))
-              else CONFIG_PATH.parent / "themes")
+THEMES_DIR = CONFIG_PATH.parent / "themes"
 
 DEFAULT_CONFIG = {
     "cities": ["New York"],
@@ -35,7 +34,7 @@ DEFAULT_CONFIG = {
     "window_size": [760, 440],
     "debug": False,
     "time_format_24h": False,
-    "theme": "Dark" 
+    "theme": "System"
 }
 
 
@@ -54,7 +53,7 @@ def load_config():
         "window_size": [760, 440],
         "debug": False,
         "time_format_24h": False,
-        "theme": "Dark"
+        "theme": "System"
     }
 
 def save_config(cfg: dict):

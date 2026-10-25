@@ -1,0 +1,25 @@
+{
+  "name": "Aurora Borealis",
+  "background_gradient": [
+    "#0B1020",
+    "#13233F"
+  ],
+  "glass_card_color": "rgba(18,40,64,170)",
+  "card_border_color": "rgba(160,220,255,80)",
+  "text_primary": "#EAF6FF",
+  "text_muted": "#B6E3FF",
+  "text_desc": "#D9F2FF",
+  "text_more": "#BFE9FF",
+  "temp_color": "#FFD27A",
+  "high_color": "#FF9E6E",
+  "low_color": "#7ADFFF",
+  "humid_color": "#7ADFFF",
+  "wind_color": "#B39DDB",
+  "accent_glow": "#7AE4C2",
+  "link_color": "#7ADFFF",
+  "tab_bg": "rgba(122,223,255,0.08)",
+  "tab_bg_selected": "rgba(122,223,255,0.16)",
+  "tab_text": "#EAF6FF",
+  "tab_border": "rgba(122,223,255,0.25)",
+  "schema_version": 1
+}

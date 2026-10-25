@@ -24,7 +24,9 @@ def build_command(platform, config=None):
                "--distpath", str(ROOT / "dist"),
                "--workpath", str(ROOT / "build" / platform),
                "--specpath", str(ROOT / "build"),
-               "--paths", str(ROOT)]
+               "--paths", str(ROOT),
+               "--add-data", str(ROOT / "TrayWeatherApp" / "themes") +
+               (";" if platform == "windows" else ":") + "TrayWeatherApp/themes"]
     if platform == "windows":
         command += ["--icon", str(ROOT / "TrayWeatherApp.ico")]
     command.append(str(ROOT / "TrayWeatherApp" / "main.py"))

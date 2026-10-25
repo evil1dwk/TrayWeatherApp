@@ -1,5 +1,17 @@
 # Changelog
 
+## 2.3.0 — planned first release
+
+- Replaced generated theme ZIPs with eight bundled, validated JSON presets.
+- Added System appearance, custom theme import/export, and a custom themes folder.
+- Added an isolated Settings preview; Save applies a theme and Cancel preserves the active theme.
+- Preserve legacy ZIP imports, optional CSS, and existing saved theme selections.
+- Centralized theme notifications and recolor existing weather details when themes change.
+- Added About TrayWeatherApp with the visible version and project links.
+- Added theme format documentation and regression tests.
+
+Earlier entries record development milestones, not published releases.
+
 ## 2.2.1
 
 - Fix a crash when saving Settings after closing a city tab whose displayed name changed after a weather update.

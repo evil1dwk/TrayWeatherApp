@@ -1,0 +1,25 @@
+{
+  "name": "Forest Mist",
+  "background_gradient": [
+    "#0E1915",
+    "#1B352B"
+  ],
+  "glass_card_color": "rgba(24,46,38,160)",
+  "card_border_color": "rgba(200,235,220,70)",
+  "text_primary": "#E9F5EF",
+  "text_muted": "#CFEADE",
+  "text_desc": "#DFF7ED",
+  "text_more": "#C9EFE1",
+  "temp_color": "#FFD27A",
+  "high_color": "#F7B775",
+  "low_color": "#9FE0C3",
+  "humid_color": "#9FE0C3",
+  "wind_color": "#A7C4FF",
+  "accent_glow": "#86F7C2",
+  "link_color": "#9FE0C3",
+  "tab_bg": "rgba(159,224,195,0.08)",
+  "tab_bg_selected": "rgba(159,224,195,0.16)",
+  "tab_text": "#E9F5EF",
+  "tab_border": "rgba(159,224,195,0.25)",
+  "schema_version": 1
+}
