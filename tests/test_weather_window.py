@@ -151,6 +151,27 @@ class WeatherWindowTests(unittest.TestCase):
         self.assertIn("Unable", self.window.footer_status.text())
         self.assertIn("timeout", self.window.footer_status.toolTip())
 
+    def test_compact_status_survives_tab_and_forecast_layout_changes(self):
+        from datetime import datetime, timezone
+        self.owner.config["view_mode"] = "compact"
+        self.window.apply_view_mode()
+        expected = {}
+        for city in ("Boston", "London"):
+            self.window.update_city_tab(city, {"city": city, "temp": 20,
+                "updated_at": datetime.now(timezone.utc).isoformat()})
+            self.window.set_weather_state(city, "live")
+            expected[city] = self.window.city_tabs[city]["card"].compact_status.text()
+        for forecast in (True, False, True):
+            self.window.select_forecast(forecast)
+            for city in ("London", "Boston"):
+                card = self.window.city_tabs[city]["card"]
+                card.apply_responsive_layout()
+                self.window.tabs.setCurrentWidget(self.window.city_tabs[city]["container"])
+                self.window.refresh_footer()
+                self.assertEqual(card.compact_status.text(), expected[city])
+                self.assertEqual(self.window.footer_status.text(), expected[city])
+                self.assertIn("Up to date", self.window.footer_status.toolTip())
+
     def test_normal_settings_gear_opens_settings(self):
         from TrayWeatherApp.ui_components import GlassCard
         callback = Mock()

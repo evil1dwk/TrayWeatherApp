@@ -236,8 +236,8 @@ class GlassCard(QWidget):
         self.compact_icon.setText(self.icon_lbl.text())
         self.compact_icon.setToolTip(self.compact_summary.toolTip() + "\n" + self.time_lbl.text())
         self.compact_summary.setText(self._compact_summary)
-        self.compact_status.setText(self.status_lbl.text())
-        self.compact_status.setToolTip(self.status_lbl.toolTip())
+        # Freshness owns the compact status; layout updates must not replace
+        # its short text with the Normal-view status.
 
     def apply_responsive_layout(self):
         # Kept for callers refreshing an existing card; never hide its icon.
