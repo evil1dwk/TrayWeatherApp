@@ -3,7 +3,7 @@ from datetime import date
 import math
 
 from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QFont
+from PyQt6.QtGui import QFont, QFontMetricsF
 from PyQt6.QtWidgets import QWidget, QLabel, QVBoxLayout, QHBoxLayout, QToolButton, QSizePolicy
 
 
@@ -74,6 +74,7 @@ class ForecastPanel(QWidget):
             for label in labels:
                 label.setAlignment(Qt.AlignmentFlag.AlignCenter)
                 label.setTextFormat(Qt.TextFormat.PlainText)
+                label.setSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Preferred)
                 layout.addWidget(label)
             columns.addWidget(widget, 1)
             self.columns.append((widget, labels))
@@ -156,5 +157,36 @@ class ForecastPanel(QWidget):
                 (probability, "text_muted", 9 if compact else 11),
             ]:
                 label.setStyleSheet(f"color:{theme.value(color)}; background:transparent;")
+                label.setProperty("forecastPixelSize", round(size * 4 / 3))
                 label.setFont(forecast_font(size, emoji=label is icon))
                 label.setToolTip(tooltip)
+
+        self.fit_column_text()
+
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        self.fit_column_text()
+
+    def fit_column_text(self):
+        # Windows emoji/font fallback may report much wider text than Linux.
+        # Columns share the available width; fit their actual glyph metrics
+        # rather than allowing QLabel's natural width to enlarge the panel.
+        self.box.activate()
+        for widget, labels in self.columns:
+            if widget.isHidden():
+                continue
+            widget.layout().activate()
+            for label in labels:
+                if label.isHidden():
+                    continue
+                base = label.property("forecastPixelSize")
+                if not base:
+                    continue
+                font = label.font()
+                available = max(1, label.contentsRect().width() - 2)
+                for size in range(int(base), 0, -1):
+                    font.setPixelSize(size)
+                    if QFontMetricsF(font).horizontalAdvance(label.text()) <= available:
+                        break
+                if label.font() != font:
+                    label.setFont(font)

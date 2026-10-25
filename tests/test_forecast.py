@@ -88,6 +88,10 @@ class ForecastTests(unittest.TestCase):
             for widget, labels in panel.columns:
                 for label in labels:
                     self.assertGreater(label.font().pixelSize(), 0)
+                    if not label.isHidden():
+                        from PyQt6.QtGui import QFontMetricsF
+                        self.assertLessEqual(QFontMetricsF(label.font()).horizontalAdvance(label.text()),
+                                             label.contentsRect().width())
             self.assertGreater(panel.city.font().pixelSize(), 0)
             self.assertIn("80%",panel.columns[1][0].toolTip())
             self.assertEqual(panel.columns[1][1][4].isHidden(),mode=="compact")
