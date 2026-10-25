@@ -48,7 +48,7 @@ class TrayTemperatureTests(unittest.TestCase):
         QCoreApplication.sendPostedEvents(None,QEvent.Type.DeferredDelete)
 
     def test_temperature_uses_large_digits_without_degree_symbol(self):
-        from PyQt6.QtGui import QPainterPath
+        from PyQt6.QtGui import QFont, QFontMetricsF, QPainterPath
         captured = []
         class RecordingPath(QPainterPath):
             def addText(self, *args):
@@ -57,7 +57,17 @@ class TrayTemperatureTests(unittest.TestCase):
         with patch("PyQt6.QtGui.QPainterPath", RecordingPath):
             create_temperature_icon(68.7)
         self.assertEqual(captured[0][2], "69")
-        self.assertGreaterEqual(captured[0][1].pixelSize(), 40)
+        font = captured[0][1]
+        text = captured[0][2]
+        # Font metrics vary with the platform, installed fonts, and display DPI.
+        # Check that the renderer chooses the largest size that fits its budget.
+        self.assertTrue(font.bold())
+        self.assertLessEqual(QFontMetricsF(font).horizontalAdvance(text), 56)
+        self.assertLessEqual(font.pixelSize(), 48)
+        if font.pixelSize() < 48:
+            larger = QFont(font)
+            larger.setPixelSize(font.pixelSize() + 1)
+            self.assertGreater(QFontMetricsF(larger).horizontalAdvance(text), 56)
 
     def test_icon_default_and_temperature_option_use_same_tooltip(self):
         owner=SimpleNamespace(config={},theme=ThemeManager(),cities=["Boston"],locations={},
