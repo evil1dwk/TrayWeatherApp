@@ -144,13 +144,15 @@ Settings. Existing saved window
 positions are retained. Older arbitrary window sizes are replaced by the chosen
 view size.
 
-## Temperature in the tray
+## Tray display
 
-The tray icon displays a full-size weather emoji with large outlined temperature digits overlaid for the **leftmost city tab**. The degree symbol is omitted in the icon for readability; the tooltip includes units.
-Drag city tabs to choose which city supplies it. The tooltip shows the full
-location, temperature with units, conditions, and update status. Cached readings
-remain visible offline, with stale/error status in the tooltip. An em dash means
-there is no temperature available yet.
+Settings offers **Weather icon** (default) or **Temperature only**. Save applies
+and remembers the choice; Cancel leaves it unchanged. Both use the leftmost city
+tab. Drag city tabs to change the tray city.
+
+Weather icon displays only the weather emoji. Temperature only uses large
+outlined digits, without a degree symbol. In both modes, hover for the exact
+temperature with units, location, conditions, and update status.
 
 ## Daily forecast
 

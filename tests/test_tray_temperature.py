@@ -26,35 +26,28 @@ class TrayTemperatureTests(unittest.TestCase):
                 self.assertTrue(any(image.pixelColor(x,y).alpha()>0 for x in range(64) for y in range(64)))
 
     def test_first_city_reorder_removal_and_unit_reset(self):
-        owner=SimpleNamespace(config={},theme=ThemeManager(),cities=["Boston","London"],
+        owner=SimpleNamespace(config={"tray_display":"temperature"},theme=ThemeManager(),cities=["Boston","London"],
                               locations={},jobs={},units="imperial",tray=Mock(),save_config=Mock())
         window=WeatherWindow(owner)
         window.add_city_tab("Boston");window.add_city_tab("London");window.add_fake_tab()
         with patch("TrayWeatherApp.weather.create_temperature_icon") as icon:
             window.update_city_tab("Boston",{"city":"Boston, US","temp":68.7,"desc":"Clear sky","icon":"☀️"})
             window.update_city_tab("London",{"city":"London, UK","temp":50,"desc":"Rain","icon":"🌧️"})
-            self.assertEqual(icon.call_args.args,(68.7,"☀️"))
+            self.assertEqual(icon.call_args.args,(68.7,))
             self.assertIn("68.7°F",owner.tray.setToolTip.call_args.args[0])
             window.tabs.tabBar().moveTab(1,0)
             self.assertEqual(owner.cities,["London","Boston"])
-            self.assertEqual(icon.call_args.args,(50,"🌧️"))
+            self.assertEqual(icon.call_args.args,(50,))
             window.remove_tab(0)
-            self.assertEqual(icon.call_args.args,(68.7,"☀️"))
+            self.assertEqual(icon.call_args.args,(68.7,))
             window.clear_weather("Boston")
-            self.assertEqual(icon.call_args.args,(None,"🌍"))
+            self.assertEqual(icon.call_args.args,(None,))
             window.remove_tab(0)
             self.assertIn("No cities",owner.tray.setToolTip.call_args.args[0])
         window.deleteLater()
         QCoreApplication.sendPostedEvents(None,QEvent.Type.DeferredDelete)
 
-    def test_combined_icon_contains_weather_and_temperature_regions(self):
-        for emoji in ("☀️", "🌙", "☁️", "🌧️"):
-            image = create_temperature_icon(69, emoji).pixmap(64, 64).toImage()
-            with self.subTest(emoji=emoji):
-                self.assertTrue(any(image.pixelColor(x,y).alpha() for x in range(64) for y in range(0,32)))
-                self.assertTrue(any(image.pixelColor(x,y).alpha() for x in range(64) for y in range(36,64)))
-
-    def test_overlay_uses_large_digits_without_degree_symbol(self):
+    def test_temperature_uses_large_digits_without_degree_symbol(self):
         from PyQt6.QtGui import QPainterPath
         captured = []
         class RecordingPath(QPainterPath):
@@ -62,6 +55,34 @@ class TrayTemperatureTests(unittest.TestCase):
                 captured.append(args)
                 return super().addText(*args)
         with patch("PyQt6.QtGui.QPainterPath", RecordingPath):
-            create_temperature_icon(68.7, "☀️")
+            create_temperature_icon(68.7)
         self.assertEqual(captured[0][2], "69")
         self.assertGreaterEqual(captured[0][1].pixelSize(), 40)
+
+    def test_icon_default_and_temperature_option_use_same_tooltip(self):
+        owner=SimpleNamespace(config={},theme=ThemeManager(),cities=["Boston"],locations={},
+                              jobs={},units="imperial",tray=Mock(),save_config=Mock())
+        window=WeatherWindow(owner);window.add_city_tab("Boston")
+        with patch("TrayWeatherApp.weather.create_tray_icon") as emoji, patch(
+                "TrayWeatherApp.weather.create_temperature_icon") as digits:
+            window.update_city_tab("Boston",{"city":"Boston","temp":69,"icon":"☀️","desc":"Clear sky"})
+            emoji.assert_called_with("☀️")
+            digits.assert_not_called()
+            tooltip=owner.tray.setToolTip.call_args.args[0]
+            owner.config["tray_display"]="temperature"
+            window.update_tray_temperature()
+            digits.assert_called_with(69)
+            self.assertEqual(owner.tray.setToolTip.call_args.args[0],tooltip)
+        window.deleteLater()
+        QCoreApplication.sendPostedEvents(None,QEvent.Type.DeferredDelete)
+
+    def test_settings_tray_choice_is_saved_only_on_accept(self):
+        from TrayWeatherApp.settings import SettingsDialog
+        config={}
+        dialog=SettingsDialog(config,ThemeManager())
+        self.assertEqual(dialog.tray_select.currentData(),"icon")
+        dialog.tray_select.setCurrentIndex(1)
+        self.assertEqual(dialog.get_values()["tray_display"],"temperature")
+        dialog.reject()
+        self.assertNotIn("tray_display",config)
+        dialog.deleteLater()

@@ -30,6 +30,10 @@ class SettingsDialog(QDialog):
         self.view_select.addItem("Normal", "normal")
         self.view_select.addItem("Compact", "compact")
         self.view_select.setCurrentIndex(1 if config.get("view_mode") == "compact" else 0)
+        self.tray_select = QComboBox()
+        self.tray_select.addItem("Weather icon", "icon")
+        self.tray_select.addItem("Temperature only", "temperature")
+        self.tray_select.setCurrentIndex(1 if config.get("tray_display") == "temperature" else 0)
         self.time_cb = QCheckBox("Use 24-hour clock")
         self.time_cb.setChecked(config.get("time_format_24h", False))
         self.debug_cb = QCheckBox("Enable debug logging")
@@ -42,6 +46,7 @@ class SettingsDialog(QDialog):
         form.addRow("Units", self.units_input)
         form.addRow("Theme", self.theme_select)
         form.addRow("View", self.view_select)
+        form.addRow("Tray display", self.tray_select)
         form.addRow(self.time_cb)
         form.addRow(self.debug_cb)
         outer = QVBoxLayout(self)
@@ -199,6 +204,7 @@ class SettingsDialog(QDialog):
         return {
             "units": self.units_input.currentText(),
             "view_mode": self.view_select.currentData(),
+            "tray_display": self.tray_select.currentData(),
             "time_format_24h": self.time_cb.isChecked(),
             "debug": self.debug_cb.isChecked(),
             "theme": self.theme_select.currentText(),

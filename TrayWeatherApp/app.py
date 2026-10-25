@@ -206,6 +206,7 @@ class TrayWeatherApp(QObject):
             old_units = self.units
             self.units = vals["units"]
             self.config["view_mode"] = vals.get("view_mode", "normal")
+            self.config["tray_display"] = vals.get("tray_display", "icon")
             self.window.apply_view_mode()
             if old_units != self.units:
                 for city in list(self.cities):
@@ -223,6 +224,7 @@ class TrayWeatherApp(QObject):
             self.config["time_format_24h"] = vals["time_format_24h"]
             self.time_format_24h = vals["time_format_24h"]
             self.save_config()
+            self.window.update_tray_temperature()
             for data in self.window.city_tabs.values():
                 self.window.update_card_time(data["card"])
             self.fetch_weather_now()

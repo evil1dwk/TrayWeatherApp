@@ -352,13 +352,16 @@ class WeatherWindow(QWidget):
             return
         cities = self.app_ref.cities
         if not cities:
-            tray.setIcon(create_temperature_icon(None, "🌍"))
+            tray.setIcon(create_temperature_icon(None) if self.app_ref.config.get("tray_display") == "temperature" else create_tray_icon("🌍"))
             tray.setToolTip("TrayWeatherApp · No cities configured")
             return
         city = cities[0]
         data = self.city_tabs.get(city, {})
         info = data.get("info", {})
-        tray.setIcon(create_temperature_icon(info.get("temp"), info.get("icon") or "🌍"))
+        if self.app_ref.config.get("tray_display") == "temperature":
+            tray.setIcon(create_temperature_icon(info.get("temp")))
+        else:
+            tray.setIcon(create_tray_icon(info.get("icon") or "🌍"))
         name = info.get("city") or getattr(self.app_ref, "locations", {}).get(city, {}).get("name", city)
         card = data.get("card")
         temperature = card.temp_lbl.text() if card else "—"

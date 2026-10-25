@@ -33,6 +33,7 @@ DEFAULT_CONFIG = {
     "window_pos": [100, 100],
     "window_size": [760, 500],
     "view_mode": "normal",
+    "tray_display": "icon",
     "debug": False,
     "time_format_24h": False,
     "theme": "System"
@@ -53,6 +54,7 @@ def load_config():
         "window_pos": [100, 100],
         "window_size": [760, 500],
     "view_mode": "normal",
+    "tray_display": "icon",
         "debug": False,
         "time_format_24h": False,
         "theme": "System"
@@ -101,15 +103,15 @@ def format_tray_temperature(temperature):
     return f"{round(temperature)}°"
 
 
-def create_temperature_icon(temperature, emoji="☀️"):
-    """Overlay large outlined digits on a full-size weather emoji."""
+def create_temperature_icon(temperature):
+    """Render large centered temperature digits without a weather overlay."""
     from PyQt6.QtCore import QPointF, QRect
     from PyQt6.QtGui import QPainterPath, QPen, QFontMetricsF
     text = format_tray_temperature(temperature).removesuffix("°")
     pixmap = QPixmap(64, 64)
     pixmap.fill(Qt.GlobalColor.transparent)
     font = QFont("Segoe UI", weight=QFont.Weight.Bold)
-    for size in range(44, 7, -1):
+    for size in range(48, 7, -1):
         font.setPixelSize(size)
         metrics = QFontMetricsF(font)
         if metrics.horizontalAdvance(text) <= 56:
@@ -117,14 +119,9 @@ def create_temperature_icon(temperature, emoji="☀️"):
     path = QPainterPath()
     path.addText(QPointF(0, 0), font, text)
     bounds = path.boundingRect()
-    path.translate(32 - bounds.center().x(), 44 - bounds.center().y())
+    path.translate(32 - bounds.center().x(), 32 - bounds.center().y())
     painter = QPainter(pixmap)
     painter.setRenderHint(QPainter.RenderHint.Antialiasing)
-    emoji_font = QFont("Segoe UI Emoji")
-    emoji_font.setPixelSize(54)
-    painter.setFont(emoji_font)
-    painter.setPen(QColor("#FFFFFF"))
-    painter.drawText(QRect(0, 0, 64, 60), Qt.AlignmentFlag.AlignCenter, emoji or "🌍")
     painter.setPen(QPen(QColor("#101218"), 5))
     painter.setBrush(QColor("#FFFFFF"))
     painter.drawPath(path)
