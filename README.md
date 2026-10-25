@@ -60,15 +60,21 @@ python scripts/build.py
 python scripts/build.py --verbose
 ```
 
-Build on the target operating system. Executables go to `releases/windows/`
-or `releases/linux/`. Windows optionally uses Inno Setup (`iscc` on PATH).
-If Inno Setup is unavailable, the standalone executable remains available.
+Build on the target operating system. The executable and release archive go to
+`dist/`:
+
+- Windows: `TrayWeatherApp.exe` and `TrayWeatherApp-2.2.0-windows-<arch>.zip`
+- Linux: `TrayWeatherApp` and `TrayWeatherApp-2.2.0-linux-<arch>.tar.gz`
+
+There is no Windows installer step. Archives contain the standalone executable
+and any optional theme ZIPs from `themes/`. Extract before launching. Linux
+archives preserve executable permissions. Without portable themes, the app
+generates default themes in the user profile.
 
 The build script resolves paths from its own location, so it also works when
 invoked by absolute path from another directory. Platform configurations live
-in `build/windows/build.json` and `build/linux/build.json`.
-Temporary PyInstaller files are kept in `.build/`; tracked build configurations
-are preserved.
+in `packaging/windows/build.json` and `packaging/linux/build.json`, matching
+TrayNSLookup. Temporary PyInstaller files go to the ignored `build/` folder.
 
 To create an installable Python wheel:
 
@@ -81,7 +87,7 @@ python -m pip wheel . --no-deps --wheel-dir dist
 Current version: **2.2.0**. The previous version, **2.1.4**, already used three parts.
 
 `TrayWeatherApp/_version.py` is the single version source for Python package
-metadata, the application, and the Windows installer. Use **MAJOR.MINOR.PATCH**:
+metadata, the application, and release archive names. Use **MAJOR.MINOR.PATCH**:
 major for incompatible changes, minor for compatible additions, patch for fixes.
 Builds never increment the version. Release tags should look like `v2.2.0`.
 
@@ -90,9 +96,11 @@ Builds never increment the version. Release tags should look like `v2.2.0`.
 - `pyproject.toml`: package metadata, runtime dependencies, and optional build tools
 - `TrayWeatherApp/`: application package and module entry point
 - `tests/`: standard-library unittest suite
-- `scripts/build.py` and `build/<platform>/`: executable and installer configuration
+- `scripts/build.py`: executable build and release archive creation
+- `packaging/<platform>/build.json`: tracked PyInstaller configuration
+- `build/`: temporary build files (ignored)
 - `themes/`: optional portable theme ZIP files
-- `releases/<platform>/`: executable output
+- `dist/`: executable and release archive output (ignored)
 
 Settings retain their existing location:
 `~/.TrayWeatherApp/pyqt_tray_weather.json` (under the user profile on Windows).

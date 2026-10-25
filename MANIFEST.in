@@ -1,3 +1,4 @@
 include scripts/build.py TrayWeatherApp.ico CHANGELOG.md
-recursive-include build *.json *.iss
+recursive-include packaging *.json
 recursive-include tests *.py
+recursive-include themes *.zip

@@ -1,0 +1,9 @@
+{
+  "AppName": "TrayWeatherApp",
+  "pyinstaller": [
+    "--clean",
+    "--noconfirm",
+    "--onefile",
+    "--windowed"
+  ]
+}

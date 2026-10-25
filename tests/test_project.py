@@ -34,17 +34,18 @@ class PackagingTests(unittest.TestCase):
             try:
                 os.chdir(directory)
                 with patch.object(sys, "argv", ["scripts/build.py"]), patch.object(
-                    builder, "run_pyinstaller") as run, patch.object(
-                    builder, "run_inno_setup"), patch.object(builder, "clean_build_artifacts") as clean:
+                    builder.subprocess, "run") as run, patch.object(
+                    builder, "package_release") as package:
                     builder.main()
-                args = run.call_args.args
-                self.assertEqual(Path(args[2]), ROOT)
-                self.assertEqual(Path(args[3]), ROOT)
-                self.assertIn("TrayWeatherApp/main.py", args[1])
-                clean.assert_called_once_with(str(ROOT / ".build"))
+                command = run.call_args.args[0]
+                self.assertEqual(run.call_args.kwargs["cwd"], ROOT)
+                self.assertEqual(command[:3], [sys.executable, "-m", "PyInstaller"])
+                self.assertIn(str(ROOT / "TrayWeatherApp/main.py"), command)
+                self.assertIn(str(ROOT / "dist"), command)
+                package.assert_called_once()
             finally:
                 os.chdir(previous)
-        self.assertTrue((ROOT / "build/windows/build.json").exists())
+        self.assertTrue((ROOT / "packaging/windows/build.json").exists())
 
     def test_build_script_runs_from_scripts_and_other_directory(self):
         self.assertFalse((ROOT / "build.py").exists())
@@ -54,15 +55,45 @@ class PackagingTests(unittest.TestCase):
                 cwd=directory, capture_output=True, text=True, check=True)
         self.assertIn("--config", result.stdout)
 
-    def test_pyinstaller_uses_active_interpreter(self):
-        with tempfile.TemporaryDirectory() as directory, patch.object(builder.subprocess, "run") as run:
-            builder.run_pyinstaller("Example", ["entry.py"], directory, directory)
-            self.assertEqual(run.call_args.args[0][:3], [sys.executable, "-m", "PyInstaller"])
-
-    def test_build_configs_do_not_duplicate_version(self):
+    def test_platform_build_commands(self):
         for platform in ("windows", "linux"):
-            data = json.loads((ROOT / "build" / platform / "build.json").read_text())
+            data = json.loads((ROOT / "packaging" / platform / "build.json").read_text())
             self.assertNotIn("Version", data)
+            command = builder.build_command(platform)
+            self.assertEqual(command[:3], [sys.executable, "-m", "PyInstaller"])
+            self.assertIn(str(ROOT / "build" / platform), command)
+            self.assertNotIn("iscc", command)
+            self.assertEqual("--icon" in command, platform == "windows")
+
+    def test_release_archive_contents_and_permissions(self):
+        import tarfile
+        for platform in ("windows", "linux"):
+            with self.subTest(platform=platform), tempfile.TemporaryDirectory() as directory:
+                root = Path(directory)
+                (root / "dist").mkdir()
+                binary = root / "dist" / ("TrayWeatherApp.exe" if platform == "windows" else "TrayWeatherApp")
+                binary.write_bytes(b"standalone application")
+                binary.chmod(0o755)
+                (root / "themes").mkdir()
+                (root / "themes/Test.zip").write_bytes(b"theme zip")
+                with patch.object(builder, "normalized_architecture", return_value="x86_64"):
+                    archive = builder.package_release(platform, root)
+                self.assertTrue(archive.name.startswith(f"TrayWeatherApp-{__version__}-{platform}-x86_64"))
+                if platform == "windows":
+                    with zipfile.ZipFile(archive) as package:
+                        self.assertEqual(set(package.namelist()), {binary.name, "themes/Test.zip"})
+                        self.assertEqual(package.read(binary.name), binary.read_bytes())
+                else:
+                    with tarfile.open(archive) as package:
+                        self.assertEqual(set(package.getnames()), {binary.name, "themes/Test.zip"})
+                        self.assertTrue(package.getmember(binary.name).mode & 0o111)
+                        self.assertEqual(package.extractfile(binary.name).read(), binary.read_bytes())
+
+    def test_missing_binary_cannot_create_release(self):
+        with tempfile.TemporaryDirectory() as directory:
+            with self.assertRaises(FileNotFoundError):
+                builder.package_release("linux", directory)
+
 
 
 class ConfigurationTests(unittest.TestCase):
