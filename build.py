@@ -5,6 +5,10 @@ import os
 import shutil
 import subprocess
 import sys
+from pathlib import Path
+from TrayWeatherApp._version import __version__
+
+PROJECT_ROOT = Path(__file__).resolve().parent
 
 # ---------- Read the build.json ----------
 def load_config(path):
@@ -112,7 +116,7 @@ def run_pyinstaller(app_name, py_args, app_dir, project_root, icon_path=None, ve
         py_args = new_args
         print(f"💡 Using project root icon: {icon_full}")
 
-    command = ["pyinstaller"] + py_args + ["--distpath", release_dir, "--workpath", "build"]
+    command = [sys.executable, "-m", "PyInstaller"] + py_args + ["--distpath", release_dir, "--workpath", os.path.join(project_root, ".build", "build"), "--specpath", os.path.join(project_root, ".build")]
     print(f"⚙️ Running PyInstaller... {'(verbose)' if verbose else '(silent)'}")
     try:
         subprocess.run(
@@ -129,22 +133,6 @@ def run_pyinstaller(app_name, py_args, app_dir, project_root, icon_path=None, ve
             print("💡 Tip: Run with --verbose to see full PyInstaller output.")
         sys.exit(e.returncode)
 
-def update_inno_setup_version(iss_path, version):
-    print(f"⚙️ Updating version in Inno Setup script: {iss_path}")
-    with open(iss_path, "r", encoding="utf-8") as f:
-        lines = f.readlines()
-    updated = False
-    for i, line in enumerate(lines):
-        if line.strip().startswith("#define MyAppVersion"):
-            lines[i] = f'#define MyAppVersion "{version}"\n'
-            updated = True
-            break
-    if not updated:
-        lines.insert(0, f'#define MyAppVersion "{version}"\n')
-    with open(iss_path, "w", encoding="utf-8") as f:
-        f.writelines(lines)
-    print(f"✅ Updated version to {version}")
-
 def run_inno_setup(app_name, version, project_root, verbose=False):
     release_dir = os.path.join(project_root, "releases", "windows")
     iss_path = os.path.join(project_root, "build", "windows", f"{app_name}.iss")
@@ -152,11 +140,10 @@ def run_inno_setup(app_name, version, project_root, verbose=False):
         print(f"ℹ️ No Inno Setup script found at {iss_path}. Skipping installer build.")
         return
 
-    update_inno_setup_version(iss_path, version)
     print(f"📦 Running Inno Setup Compiler... {'(verbose)' if verbose else '(silent)'}")
     try:
         subprocess.run(
-            ["iscc", f"/O{release_dir}", iss_path],
+            ["iscc", f"/DMyAppVersion={version}", f"/O{release_dir}", iss_path],
             check=True,
             stdout=None if verbose else subprocess.DEVNULL,
             stderr=None if verbose else subprocess.DEVNULL
@@ -181,21 +168,22 @@ def main():
     args = parser.parse_args()
 
     if args.config:
-        config_path = args.config
+        config_path = str(PROJECT_ROOT / args.config)
     else:
-        config_path = os.path.join("build", "windows" if os.name == "nt" else "linux", "build.json")
+        config_path = os.path.join(PROJECT_ROOT, "build", "windows" if os.name == "nt" else "linux", "build.json")
 
     print(f"📄 Using config: {config_path}")
     config_raw = load_config(config_path)
+    config_raw["Version"] = __version__
     config = expand_placeholders_recursive(config_raw, config_raw)
 
     app_name = config["AppName"]
-    version = config.get("Version", "1.0.0.0")
+    version = __version__
     icon_path = config.get("Icon")
     py_args = fix_add_data_paths(config["pyinstaller"])
 
-    project_root = os.getcwd()
-    app_dir = os.path.join(project_root, app_name)
+    project_root = str(PROJECT_ROOT)
+    app_dir = project_root
     if not os.path.exists(app_dir):
         print(f"❌ Application directory not found: {app_dir}")
         sys.exit(1)
@@ -207,7 +195,7 @@ def main():
     else:
         print("💡 Skipping Inno Setup — only runs on Windows.")
 
-    clean_build_artifacts(app_dir)
+    clean_build_artifacts(os.path.join(project_root, ".build"))
 
 if __name__ == "__main__":
     main()

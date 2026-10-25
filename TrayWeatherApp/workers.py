@@ -57,7 +57,7 @@ class WeatherWorker(QObject):
             cur, daily = d.get("current", {}), d.get("daily", {})
 
             tz_offset = d.get("utc_offset_seconds", 0)
-            local_time = datetime.utcnow() + timedelta(seconds=tz_offset)
+            local_time = datetime.now(timezone.utc) + timedelta(seconds=tz_offset)
             hour = local_time.hour
             is_night = hour < 6 or hour >= 18
 

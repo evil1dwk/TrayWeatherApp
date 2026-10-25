@@ -1,13 +1,14 @@
 {
   "AppName": "TrayWeatherApp",
-  "Version": "2.1.4",
   "Icon": "$AppName.ico",
   "pyinstaller": [
     "--noconfirm",
     "--onefile",
     "--windowed",
-    "--name", "$AppName",
-    "--icon", "$Icon",
-    "main.py"
+    "--name",
+    "$AppName",
+    "--icon",
+    "$Icon",
+    "TrayWeatherApp/main.py"
   ]
 }
