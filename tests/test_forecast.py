@@ -68,10 +68,10 @@ class ForecastTests(unittest.TestCase):
         self.assertIsNone(parsed[0]["low"])
         self.assertIsNone(parsed[0]["precipitation_probability"])
 
-    def test_five_and_three_days_without_resizing_or_request(self):
+    def test_five_days_in_both_views_without_resizing_or_request(self):
         self.window.update_city_tab("city",self.info)
         self.window.show()
-        for mode,count,size in [("normal",5,(760,500)),("compact",3,(440,240))]:
+        for mode,count,size in [("normal",5,(760,500)),("compact",5,(440,240))]:
             self.owner.config["view_mode"]=mode
             self.window.apply_view_mode()
             with patch("TrayWeatherApp.workers.requests.get") as get:
@@ -84,6 +84,7 @@ class ForecastTests(unittest.TestCase):
             self.assertEqual(sum(not w.isHidden() for w,labels in panel.columns),count)
             self.assertEqual((self.window.width(),self.window.height()),size)
             self.assertGreaterEqual(panel.height(),panel.minimumSizeHint().height())
+            self.assertGreaterEqual(panel.width(),panel.minimumSizeHint().width())
             self.assertIn("80%",panel.columns[1][0].toolTip())
             self.assertEqual(panel.columns[1][1][4].isHidden(),mode=="compact")
             self.window.select_forecast(False)

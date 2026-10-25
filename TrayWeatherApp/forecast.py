@@ -113,7 +113,7 @@ class ForecastPanel(QWidget):
         self.message.setFont(QFont("Segoe UI", 9 if compact else 11))
         self.message.setStyleSheet(f"color:{theme.value('text_muted')}; background:transparent;")
         for index, (widget, labels) in enumerate(self.columns):
-            visible = index < len(days) and index < (3 if compact else 5)
+            visible = index < len(days) and index < 5
             widget.setVisible(visible)
             if not visible:
                 continue

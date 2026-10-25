@@ -157,7 +157,7 @@ temperature with units, location, conditions, and update status.
 ## Daily forecast
 
 Use **Current / Forecast** below the city tabs. Normal shows five days and
-Compact shows three, without changing the window size or selected city. The
+Compact also shows five, without changing the window size or selected city. The
 selection is remembered across cities and restarts.
 
 Each day shows its weather icon and high/low temperatures in your selected unit
