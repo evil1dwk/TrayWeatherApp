@@ -53,3 +53,15 @@ class TrayTemperatureTests(unittest.TestCase):
             with self.subTest(emoji=emoji):
                 self.assertTrue(any(image.pixelColor(x,y).alpha() for x in range(64) for y in range(0,32)))
                 self.assertTrue(any(image.pixelColor(x,y).alpha() for x in range(64) for y in range(36,64)))
+
+    def test_overlay_uses_large_digits_without_degree_symbol(self):
+        from PyQt6.QtGui import QPainterPath
+        captured = []
+        class RecordingPath(QPainterPath):
+            def addText(self, *args):
+                captured.append(args)
+                return super().addText(*args)
+        with patch("PyQt6.QtGui.QPainterPath", RecordingPath):
+            create_temperature_icon(68.7, "☀️")
+        self.assertEqual(captured[0][2], "69")
+        self.assertGreaterEqual(captured[0][1].pixelSize(), 40)

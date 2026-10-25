@@ -102,30 +102,30 @@ def format_tray_temperature(temperature):
 
 
 def create_temperature_icon(temperature, emoji="☀️"):
-    """Fit both the weather emoji and temperature into a square tray slot."""
+    """Overlay large outlined digits on a full-size weather emoji."""
     from PyQt6.QtCore import QPointF, QRect
     from PyQt6.QtGui import QPainterPath, QPen, QFontMetricsF
-    text = format_tray_temperature(temperature)
+    text = format_tray_temperature(temperature).removesuffix("°")
     pixmap = QPixmap(64, 64)
     pixmap.fill(Qt.GlobalColor.transparent)
     font = QFont("Segoe UI", weight=QFont.Weight.Bold)
-    for size in range(29, 7, -1):
+    for size in range(44, 7, -1):
         font.setPixelSize(size)
         metrics = QFontMetricsF(font)
-        if metrics.horizontalAdvance(text) <= 58:
+        if metrics.horizontalAdvance(text) <= 56:
             break
     path = QPainterPath()
     path.addText(QPointF(0, 0), font, text)
     bounds = path.boundingRect()
-    path.translate(32 - bounds.center().x(), 49 - bounds.center().y())
+    path.translate(32 - bounds.center().x(), 44 - bounds.center().y())
     painter = QPainter(pixmap)
     painter.setRenderHint(QPainter.RenderHint.Antialiasing)
     emoji_font = QFont("Segoe UI Emoji")
-    emoji_font.setPixelSize(30)
+    emoji_font.setPixelSize(54)
     painter.setFont(emoji_font)
     painter.setPen(QColor("#FFFFFF"))
-    painter.drawText(QRect(0, 0, 64, 34), Qt.AlignmentFlag.AlignCenter, emoji or "🌍")
-    painter.setPen(QPen(QColor("#14171C"), 2))
+    painter.drawText(QRect(0, 0, 64, 60), Qt.AlignmentFlag.AlignCenter, emoji or "🌍")
+    painter.setPen(QPen(QColor("#101218"), 5))
     painter.setBrush(QColor("#FFFFFF"))
     painter.drawPath(path)
     painter.end()
