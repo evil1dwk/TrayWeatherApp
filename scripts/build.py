@@ -6,9 +6,10 @@ import shutil
 import subprocess
 import sys
 from pathlib import Path
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+# Direct script invocation puts scripts/, rather than the checkout root, on sys.path.
+sys.path.insert(0, str(PROJECT_ROOT))
 from TrayWeatherApp._version import __version__
-
-PROJECT_ROOT = Path(__file__).resolve().parent
 
 # ---------- Read the build.json ----------
 def load_config(path):

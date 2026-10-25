@@ -3,7 +3,7 @@
 
 #define MyAppName "TrayWeatherApp"
 #ifndef MyAppVersion
-  #error "Pass /DMyAppVersion=<version> (or use python build.py)"
+  #error "Pass /DMyAppVersion=<version> (or use python scripts/build.py)"
 #endif
 #define MyAppExeName "TrayWeatherApp.exe"
 
