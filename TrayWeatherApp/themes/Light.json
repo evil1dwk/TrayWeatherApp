@@ -1,0 +1,25 @@
+{
+  "name": "Light",
+  "background_gradient": [
+    "#F2F4F8",
+    "#DDE3EE"
+  ],
+  "glass_card_color": "rgba(245,247,250,200)",
+  "card_border_color": "rgba(0,0,0,60)",
+  "text_primary": "#212121",
+  "text_muted": "#4E5D6C",
+  "text_desc": "#37474F",
+  "text_more": "#546E7A",
+  "temp_color": "#E65100",
+  "high_color": "#E57373",
+  "low_color": "#039BE5",
+  "humid_color": "#039BE5",
+  "wind_color": "#7E57C2",
+  "accent_glow": "#FFC107",
+  "link_color": "#0D47A1",
+  "tab_bg": "rgba(0,0,0,0.08)",
+  "tab_bg_selected": "rgba(0,0,0,0.15)",
+  "tab_text": "#212121",
+  "tab_border": "rgba(0,0,0,0.20)",
+  "schema_version": 1
+}

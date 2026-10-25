@@ -1,0 +1,25 @@
+{
+  "name": "Solarized",
+  "background_gradient": [
+    "#002b36",
+    "#073642"
+  ],
+  "glass_card_color": "rgba(7,54,66,170)",
+  "card_border_color": "rgba(147,161,161,90)",
+  "text_primary": "#EEE8D5",
+  "text_muted": "#93A1A1",
+  "text_desc": "#E0E5C1",
+  "text_more": "#B3C2B2",
+  "temp_color": "#B58900",
+  "high_color": "#CB4B16",
+  "low_color": "#268BD2",
+  "humid_color": "#268BD2",
+  "wind_color": "#6C71C4",
+  "accent_glow": "#FABD2F",
+  "link_color": "#2AA198",
+  "tab_bg": "rgba(238,232,213,0.08)",
+  "tab_bg_selected": "rgba(238,232,213,0.16)",
+  "tab_text": "#EEE8D5",
+  "tab_border": "rgba(238,232,213,0.25)",
+  "schema_version": 1
+}

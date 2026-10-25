@@ -25,17 +25,20 @@ CONFIG_PATH = Path.home() / ".TrayWeatherApp" / "pyqt_tray_weather.json"
 LOG_PATH = CONFIG_PATH.with_name("pyqt_tray_weather.log")
 BASE_DIR = get_base_path()
 PORTABLE_THEMES_DIR = BASE_DIR / "themes"
-THEMES_DIR = (PORTABLE_THEMES_DIR if any(PORTABLE_THEMES_DIR.glob("*.zip"))
-              else CONFIG_PATH.parent / "themes")
+THEMES_DIR = CONFIG_PATH.parent / "themes"
 
 DEFAULT_CONFIG = {
     "cities": ["New York"],
     "units": "imperial",
     "window_pos": [100, 100],
-    "window_size": [760, 440],
+    "window_size": [760, 500],
+    "view_mode": "normal",
+    "tray_display": "icon",
+    "background_opacity": 100,
+    "rounded_corners": True,
     "debug": False,
     "time_format_24h": False,
-    "theme": "Dark" 
+    "theme": "System"
 }
 
 
@@ -51,10 +54,14 @@ def load_config():
         "cities": ["New York"],
         "units": "imperial",
         "window_pos": [100, 100],
-        "window_size": [760, 440],
+        "window_size": [760, 500],
+    "view_mode": "normal",
+    "tray_display": "icon",
+    "background_opacity": 100,
+    "rounded_corners": True,
         "debug": False,
         "time_format_24h": False,
-        "theme": "Dark"
+        "theme": "System"
     }
 
 def save_config(cfg: dict):
@@ -91,6 +98,42 @@ def create_tray_icon(emoji: str = "☀️") -> QIcon:
     p.drawText(pix.rect(), Qt.AlignmentFlag.AlignCenter, emoji)
     p.end()
     return QIcon(pix)
+
+def format_tray_temperature(temperature):
+    import math
+    if (not isinstance(temperature, (int, float)) or isinstance(temperature, bool)
+            or not math.isfinite(temperature)):
+        return "—"
+    return f"{round(temperature)}°"
+
+
+def create_temperature_icon(temperature):
+    """Render large centered temperature digits without a weather overlay."""
+    from PyQt6.QtCore import QPointF
+    from PyQt6.QtGui import QPainterPath, QPen, QTransform
+    text = format_tray_temperature(temperature).removesuffix("°")
+    pixmap = QPixmap(64, 64)
+    pixmap.fill(Qt.GlobalColor.transparent)
+    font = QFont("Segoe UI", weight=QFont.Weight.Black)
+    font.setPixelSize(64)
+    path = QPainterPath()
+    path.addText(QPointF(0, 0), font, text)
+    bounds = path.boundingRect()
+    # Fit actual ink rather than font advances, which include unused spacing
+    # and vary with Windows display scaling. Keep room for the outline.
+    if bounds.width() > 0 and bounds.height() > 0:
+        scale = min(58 / bounds.width(), 54 / bounds.height())
+        path = QTransform.fromScale(scale, scale).map(path)
+    bounds = path.boundingRect()
+    path.translate(32 - bounds.center().x(), 32 - bounds.center().y())
+    painter = QPainter(pixmap)
+    painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+    painter.setPen(QPen(QColor("#101218"), 3))
+    painter.setBrush(QColor("#FFFFFF"))
+    painter.drawPath(path)
+    painter.end()
+    return QIcon(pixmap)
+
 
 def set_sun_icon(window):
     pix = QPixmap(64, 64)

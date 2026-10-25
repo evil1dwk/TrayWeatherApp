@@ -73,7 +73,7 @@ class PackagingTests(unittest.TestCase):
                 (root / "dist").mkdir()
                 binary = root / "dist" / ("TrayWeatherApp.exe" if platform == "windows" else "TrayWeatherApp")
                 binary.write_bytes(b"standalone application")
-                binary.chmod(0o755)
+                binary.chmod(0o644)  # Simulate a host without Unix executable bits.
                 (root / "themes").mkdir()
                 (root / "themes/Test.zip").write_bytes(b"theme zip")
                 with patch.object(builder, "normalized_architecture", return_value="x86_64"):
@@ -86,7 +86,8 @@ class PackagingTests(unittest.TestCase):
                 else:
                     with tarfile.open(archive) as package:
                         self.assertEqual(set(package.getnames()), {binary.name, "themes/Test.zip"})
-                        self.assertTrue(package.getmember(binary.name).mode & 0o111)
+                        self.assertEqual(package.getmember(binary.name).mode, 0o755)
+                        self.assertEqual(package.getmember("themes/Test.zip").mode, 0o644)
                         self.assertEqual(package.extractfile(binary.name).read(), binary.read_bytes())
 
     def test_missing_binary_cannot_create_release(self):
@@ -94,6 +95,32 @@ class PackagingTests(unittest.TestCase):
             with self.assertRaises(FileNotFoundError):
                 builder.package_release("linux", directory)
 
+
+
+class PlatformStartupTests(unittest.TestCase):
+    def test_linux_with_x_display_defaults_to_xcb(self):
+        from TrayWeatherApp.main import configure_platform
+        with patch("sys.platform", "linux"), patch.dict(os.environ, {"DISPLAY": ":0"}, clear=True):
+            configure_platform()
+            self.assertEqual(os.environ["QT_QPA_PLATFORM"], "xcb")
+
+    def test_explicit_platform_is_preserved(self):
+        from TrayWeatherApp.main import configure_platform
+        for platform in ("wayland", "offscreen", "xcb"):
+            with self.subTest(platform=platform), patch("sys.platform", "linux"), patch.dict(
+                    os.environ, {"DISPLAY": ":0", "QT_QPA_PLATFORM": platform}, clear=True):
+                configure_platform()
+                self.assertEqual(os.environ["QT_QPA_PLATFORM"], platform)
+
+    def test_other_platforms_and_no_x_display_keep_qt_default(self):
+        from TrayWeatherApp.main import configure_platform
+        for platform, environment in [("win32", {"DISPLAY": ":0"}),
+                                      ("darwin", {"DISPLAY": ":0"}),
+                                      ("linux", {"WAYLAND_DISPLAY": "wayland-0"})]:
+            with self.subTest(platform=platform), patch("sys.platform", platform), patch.dict(
+                    os.environ, environment, clear=True):
+                configure_platform()
+                self.assertNotIn("QT_QPA_PLATFORM", os.environ)
 
 
 class ConfigurationTests(unittest.TestCase):
@@ -117,7 +144,8 @@ class ThemeTests(unittest.TestCase):
                 archive.writestr("Test.css", "QWidget { color: red; }")
                 archive.writestr("Test.json", '{"text_primary": "#ffffff"}')
             manager = ThemeManager()
-            self.assertEqual(manager.list_themes(), ["Test"])
+            self.assertIn("Test", manager.list_themes())
+            self.assertIn("System", manager.list_themes())
             manager.load_theme("Test")
             self.assertEqual(manager.value("text_primary"), "#ffffff")
             with self.assertRaises(FileNotFoundError):

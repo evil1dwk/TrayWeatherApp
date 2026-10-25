@@ -22,3 +22,6 @@ packages = ["TrayWeatherApp"]
 
 [tool.setuptools.dynamic]
 version = {attr = "TrayWeatherApp._version.__version__"}
+
+[tool.setuptools.package-data]
+TrayWeatherApp = ["themes/*.json"]

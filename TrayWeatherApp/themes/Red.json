@@ -1,0 +1,25 @@
+{
+  "name": "Red",
+  "background_gradient": [
+    "#400000",
+    "#190000"
+  ],
+  "glass_card_color": "rgba(80,0,0,160)",
+  "card_border_color": "rgba(255,160,160,60)",
+  "text_primary": "#FCE8E8",
+  "text_muted": "#F0B7B7",
+  "text_desc": "#FFCCCC",
+  "text_more": "#FFC0C0",
+  "temp_color": "#FFB347",
+  "high_color": "#FF7043",
+  "low_color": "#00BCD4",
+  "humid_color": "#4DD0E1",
+  "wind_color": "#B39DDB",
+  "accent_glow": "#FF7043",
+  "link_color": "#FF7043",
+  "tab_bg": "rgba(255,120,120,0.1)",
+  "tab_bg_selected": "rgba(255,120,120,0.2)",
+  "tab_text": "#FCE8E8",
+  "tab_border": "rgba(255,120,120,0.25)",
+  "schema_version": 1
+}

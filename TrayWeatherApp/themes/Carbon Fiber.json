@@ -1,0 +1,25 @@
+{
+  "name": "Carbon Fiber",
+  "background_gradient": [
+    "#0C0D10",
+    "#1A1C22"
+  ],
+  "glass_card_color": "rgba(26,28,34,165)",
+  "card_border_color": "rgba(110,150,200,70)",
+  "text_primary": "#E6E8EE",
+  "text_muted": "#B7C1D1",
+  "text_desc": "#D9DEEA",
+  "text_more": "#C8D0DE",
+  "temp_color": "#FFD18A",
+  "high_color": "#FFB347",
+  "low_color": "#62D1FF",
+  "humid_color": "#62D1FF",
+  "wind_color": "#8AA4FF",
+  "accent_glow": "#67E8F9",
+  "link_color": "#72B7FF",
+  "tab_bg": "rgba(114,183,255,0.08)",
+  "tab_bg_selected": "rgba(114,183,255,0.16)",
+  "tab_text": "#E6E8EE",
+  "tab_border": "rgba(114,183,255,0.25)",
+  "schema_version": 1
+}

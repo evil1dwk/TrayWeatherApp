@@ -1,0 +1,25 @@
+{
+  "name": "Dark",
+  "background_gradient": [
+    "#12141A",
+    "#1A2036"
+  ],
+  "glass_card_color": "rgba(20,22,30,150)",
+  "card_border_color": "rgba(255,255,255,25)",
+  "text_primary": "#E6E8EE",
+  "text_muted": "#9EA3B8",
+  "text_desc": "#C5C9D3",
+  "text_more": "#A8AFC2",
+  "temp_color": "#FFD18A",
+  "high_color": "#FFB347",
+  "low_color": "#7DD3FC",
+  "humid_color": "#7DD3FC",
+  "wind_color": "#C4B5FD",
+  "accent_glow": "#FFC878",
+  "link_color": "#7DD3FC",
+  "tab_bg": "rgba(255,255,255,10)",
+  "tab_bg_selected": "rgba(255,255,255,18)",
+  "tab_text": "#E6E8EE",
+  "tab_border": "rgba(255,255,255,25)",
+  "schema_version": 1
+}
