@@ -2,7 +2,7 @@
 
 from PyQt6.QtCore import Qt
 from datetime import datetime, timezone, timedelta
-from PyQt6.QtCore import Qt, QTimer
+from PyQt6.QtCore import Qt, QTimer, QSignalBlocker
 from PyQt6.QtGui import (
     QPixmap, QFont, QIcon, QPainter, QLinearGradient, QColor,
     QPainterPath
@@ -194,15 +194,20 @@ class WeatherWindow(QWidget):
             self.remove_tab(idx)
 
     def remove_tab(self, index):
-        city = self.tabs.tabText(index)
         widget = self.tabs.widget(index)
+        # Weather responses can change the visible label. The container remains
+        # the stable link to the original city key used by jobs and settings.
+        city = next((key for key, data in self.city_tabs.items()
+                     if data["container"] is widget), None)
+        if city is None:
+            return  # Invalid index or the "+" placeholder.
         if city in self.app_ref.jobs:
             self.app_ref.cleanup_job(city)
-        if city in self.city_tabs:
-            del self.city_tabs[city]
-        self.tabs.removeTab(index)
-        if widget:
-            widget.deleteLater()
+        del self.city_tabs[city]
+        # Selecting "+" as a side effect of removal must not open Add City.
+        with QSignalBlocker(self.tabs):
+            self.tabs.removeTab(index)
+        widget.deleteLater()
         if city in self.app_ref.cities:
             self.app_ref.cities.remove(city)
             self.app_ref.save_config()
