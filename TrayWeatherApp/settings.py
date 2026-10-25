@@ -64,6 +64,7 @@ class SettingsDialog(QDialog):
         self.preview_card.city_lbl.setText("New York")
         self.preview_card.time_lbl.setText("🕒 10:30 AM")
         self.preview_card.desc_lbl.setText("Partly cloudy")
+        self.preview_card.status_lbl.setText("Up to date · Updated just now")
         preview_layout.addWidget(self.preview_card)
         layout.addWidget(self.preview_frame)
         self.error_label = QLabel()

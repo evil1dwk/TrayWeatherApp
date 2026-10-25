@@ -103,6 +103,23 @@ Builds never increment the version. Release tags should look like `v2.3.0`.
 - `themes/`: optional portable theme ZIP files
 - `dist/`: executable and release archive output (ignored)
 
+## Weather freshness and cities
+
+Each weather card shows the last successful download in your computer's local
+time, its age, and whether it is up to date, refreshing, cached, or unable to
+refresh. Readings become stale after 30 minutes. An error keeps the last good
+weather visible; hover over the status for the error details.
+
+Successful results are saved to ~/.TrayWeatherApp/weather-cache.json and restored
+immediately at startup while a fresh request runs. The cache is separate for each
+location and unit system. It is bounded to 200 entries and may be deleted to reset it.
+
+Click **+** to search cities or postal codes. Select a result showing its
+state/province, country, and coordinates. Selected coordinates are saved so future
+refreshes use that exact location. Existing city-name settings continue to work;
+their coordinates are remembered after the next successful refresh. To correct an
+old ambiguous city, remove its tab and add it again through the search dialog.
+
 ## Themes
 
 Choose **System**, **Light**, **Dark**, or one of the other bundled presets in

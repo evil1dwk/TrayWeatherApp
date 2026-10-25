@@ -15,6 +15,9 @@ from PyQt6.QtWidgets import (
 
 from TrayWeatherApp.config_utils import set_sun_icon, create_tray_icon, enable_windows_acrylic, log
 from TrayWeatherApp.ui_components import GlassCard
+from TrayWeatherApp.city_search import CitySearchDialog
+from TrayWeatherApp.workers import location_label
+from TrayWeatherApp.weather_cache import parse_timestamp
 
 # ---------- Weather Window ----------
 class WeatherWindow(QWidget):
@@ -33,6 +36,7 @@ class WeatherWindow(QWidget):
         self.tabs.setTabsClosable(True)
         self.tabs.tabCloseRequested.connect(self.remove_tab)
         self.tabs.currentChanged.connect(self.check_fake_tab)
+        self.tabs.tabBarClicked.connect(self.click_tab)
         self.apply_theme_to_tabs()
 
         lay = QVBoxLayout(self)
@@ -168,7 +172,12 @@ class WeatherWindow(QWidget):
         lay.addWidget(card)
         lay.addSpacing(8)  # fixed spacing (no dark band)
         idx = self.tabs.count() - 1 if self.has_fake_tab() else self.tabs.count()
-        self.tabs.insertTab(idx, container, city)
+        location = getattr(self.app_ref, "locations", {}).get(city)
+        label = location_label(location) if location else city
+        with QSignalBlocker(self.tabs):
+            self.tabs.insertTab(idx, container, label)
+            self.tabs.setCurrentIndex(idx)
+        card.city_lbl.setText(label)
         close_btn = QToolButton()
         close_btn.setText("x")
         close_btn.setToolTip("Close tab")
@@ -190,7 +199,7 @@ class WeatherWindow(QWidget):
         """)
         close_btn.clicked.connect(lambda _, w=container: self.remove_tab_by_widget(w))
         self.tabs.tabBar().setTabButton(idx, QTabBar.ButtonPosition.RightSide, close_btn)
-        self.city_tabs[city] = {"card": card, "container": container, "city": city}
+        self.city_tabs[city] = {"card": card, "container": container, "city": city, "state": "empty"}
 
     def remove_tab_by_widget(self, widget):
         idx = self.tabs.indexOf(widget)
@@ -214,28 +223,34 @@ class WeatherWindow(QWidget):
         widget.deleteLater()
         if city in self.app_ref.cities:
             self.app_ref.cities.remove(city)
+            getattr(self.app_ref, "locations", {}).pop(city, None)
             self.app_ref.save_config()
 
     def add_fake_tab(self):
         fake = QWidget()
-        self.tabs.addTab(fake, "+")
+        with QSignalBlocker(self.tabs):
+            self.tabs.addTab(fake, "+")
         self.tabs.tabBar().setTabButton(self.tabs.indexOf(fake), QTabBar.ButtonPosition.RightSide, None)
 
     def has_fake_tab(self):
         return self.tabs.count() > 0 and self.tabs.tabText(self.tabs.count() - 1) == "+"
 
+    def click_tab(self, index):
+        # When no cities remain, "+" is already selected and currentChanged
+        # cannot fire. Avoid a second dialog when selection already handled it.
+        if self.tabs.count() == 1:
+            self.check_fake_tab(index)
+
     def check_fake_tab(self, index):
         if self.has_fake_tab() and index == self.tabs.count() - 1:
-            city, ok = QInputDialog.getText(self, "Add City", "Enter city (e.g., New York):")
-            if ok and city:
-                city = city.strip()
-                if city and city not in self.app_ref.cities:
-                    self.app_ref.cities.append(city)
-                    self.app_ref.save_config()
-                    self.add_city_tab(city)
-                    self.app_ref.fetch_weather_city(city)
+            # Move off the placeholder before entering the modal dialog.
             if self.tabs.count() > 1:
-                self.tabs.setCurrentIndex(0)
+                with QSignalBlocker(self.tabs):
+                    self.tabs.setCurrentIndex(0)
+            dialog = CitySearchDialog(self)
+            if dialog.exec() and dialog.selected_location:
+                self.app_ref.add_location(dialog.selected_location)
+            dialog.deleteLater()
 
     # ---------- Update Cards ----------
     def update_city_tab(self, city, info):
@@ -286,6 +301,7 @@ class WeatherWindow(QWidget):
                     f"{info.get('city', first_city)} • {info.get('desc', '-').capitalize()} • {tt_temp}"
                 )
         self.update_card_scaling()
+        self.update_freshness(city)
 
     def update_card_time(self, card):
         fmt_24h = self.app_ref.config.get("time_format_24h", True)
@@ -293,6 +309,58 @@ class WeatherWindow(QWidget):
         dt = now_utc + timedelta(seconds=getattr(card, "tz_offset", 0))
         timestr = dt.strftime("%H:%M") if fmt_24h else dt.strftime("%I:%M %p")
         card.time_lbl.setText(f"🕒 {timestr}")
+        for city, data in self.city_tabs.items():
+            if data["card"] is card:
+                self.update_freshness(city)
+                break
+
+    def clear_weather(self, city):
+        data = self.city_tabs.get(city)
+        if not data:
+            return
+        data.pop("info", None)
+        card = data["card"]
+        card.temp_lbl.setText("-°")
+        card.desc_lbl.setText("-")
+        card.more_lbl.setText("-")
+        data["state"] = "empty"
+        self.update_freshness(city)
+
+    def set_weather_state(self, city, state, error=""):
+        data = self.city_tabs.get(city)
+        if data:
+            data["state"], data["error"] = state, error
+            self.update_freshness(city)
+
+    def update_freshness(self, city):
+        data = self.city_tabs.get(city)
+        if not data:
+            return
+        timestamp = parse_timestamp(data.get("info", {}).get("updated_at"))
+        state = data.get("state", "empty")
+        if timestamp:
+            minutes = max(0, int((datetime.now(timezone.utc) - timestamp).total_seconds() / 60))
+            last = timestamp.astimezone().strftime(
+                "%H:%M" if self.app_ref.config.get("time_format_24h") else "%I:%M %p")
+            old = minutes >= 30
+            status = ("Refreshing…" if state == "refreshing" else
+                      "Unable to refresh · saved weather" if state == "error" else
+                      "Cached weather" if state == "cached" else
+                      "Stale weather" if old else "Up to date")
+            text = f"{status} · Updated {last} ({minutes} min ago)"
+            if old and state != "live":
+                text += " · stale"
+        else:
+            text = ("Refreshing…" if state == "refreshing" else
+                    "Unable to refresh · no saved weather" if state == "error" else
+                    "Waiting for weather")
+        card = data["card"]
+        card.status_lbl.setText(text)
+        card.status_lbl.setToolTip(data.get("error", "") or
+                                  "Time of the last successful download, shown in your computer's local time.")
+        if getattr(self.app_ref, "tray", None) and self.app_ref.cities and city == self.app_ref.cities[0]:
+            info = data.get("info", {})
+            self.app_ref.tray.setToolTip(f"{info.get('city', city)} · {card.temp_lbl.text()} · {text}")
 
     def update_card_scaling(self):
         if not hasattr(self, "city_tabs"):

@@ -9,6 +9,11 @@
 - Centralized theme notifications and recolor existing weather details when themes change.
 - Added About TrayWeatherApp with the visible version and project links.
 - Added theme format documentation and regression tests.
+- Show last successful weather download, freshness, cached/offline state, and refresh errors.
+- Cache successful readings by location and units; preserve them when refresh fails.
+- Add background city search with state/province/country choices and saved coordinates.
+- Deliver weather updates on the GUI thread and ignore stale results after tab/unit changes.
+- Keep active request threads alive until they finish when closing tabs or quitting.
 
 Earlier entries record development milestones, not published releases.
 

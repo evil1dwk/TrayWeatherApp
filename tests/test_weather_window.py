@@ -7,7 +7,7 @@ import unittest
 from unittest.mock import Mock, patch
 
 from PyQt6 import sip
-from PyQt6.QtCore import QCoreApplication, QEvent
+from PyQt6.QtCore import QCoreApplication, QEvent, QObject
 from PyQt6.QtWidgets import QApplication
 from TrayWeatherApp.app import TrayWeatherApp
 from TrayWeatherApp.theme import ThemeManager
@@ -44,6 +44,8 @@ class WeatherWindowTests(unittest.TestCase):
 
         # Save settings through the same path as the reported crash.
         app = TrayWeatherApp.__new__(TrayWeatherApp)
+        QObject.__init__(app)
+        app.units = "metric"
         app.app = self.qt
         app.config = self.owner.config
         app.theme = self.owner.theme
