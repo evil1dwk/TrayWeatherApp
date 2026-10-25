@@ -87,7 +87,7 @@ class WeatherWindowTests(unittest.TestCase):
         self.assertTrue(self.window.has_fake_tab())
         self.window.retheme()
 
-    def test_city_name_only_and_stable_text_when_resizing(self):
+    def test_city_name_and_fixed_views_keep_icon_and_text_visible(self):
         self.window.update_city_tab("Boston", {
             "city": "Chase City, Virginia, United States",
             "location": {"name": "Chase City"}, "temp": 20, "wind_speed": 6.6})
@@ -96,11 +96,16 @@ class WeatherWindowTests(unittest.TestCase):
         self.assertEqual(card.city_lbl.text(), "Chase City")
         self.assertEqual(self.window.tabs.tabText(0), "Chase City")
         self.assertIn("Virginia", card.city_lbl.toolTip())
-        before = card.more_lbl.font().pointSize()
         self.window.show()
-        for width, height in [(520, 480), (1000, 540), (700, 480)]:
-            self.window.resize(width, height)
+        for mode, size in [("normal", (760, 500)), ("compact", (560, 430))]:
+            self.owner.config["view_mode"] = mode
+            self.window.apply_view_mode()
             self.qt.processEvents()
-            self.assertEqual(card.more_lbl.font().pointSize(), before)
+            self.assertEqual((self.window.width(), self.window.height()), size)
+            self.assertEqual(self.window.minimumSize(), self.window.maximumSize())
+            self.window.resize(1100, 800)
+            self.qt.processEvents()
+            self.assertEqual((self.window.width(), self.window.height()), size)
+            self.assertFalse(card.icon_lbl.isHidden())
             self.assertGreaterEqual(card.more_lbl.height(), card.more_lbl.heightForWidth(card.more_lbl.width()))
         self.assertIn("<table", card.more_lbl.text())

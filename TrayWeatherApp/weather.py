@@ -27,7 +27,7 @@ class WeatherWindow(QWidget):
         self.city_tabs = {}
         self.setWindowTitle("TrayWeatherApp")
         set_sun_icon(self)
-        self.resize(*app_ref.config.get("window_size", [760, 440]))
+        self.setWindowFlag(Qt.WindowType.WindowMaximizeButtonHint, False)
         self.move(*app_ref.config.get("window_pos", [100, 100]))
         enable_windows_acrylic(self)
 
@@ -55,6 +55,16 @@ class WeatherWindow(QWidget):
 
         self.setAttribute(Qt.WidgetAttribute.WA_OpaquePaintEvent, True)
         self.setAutoFillBackground(False)
+        self.apply_view_mode()
+
+    def apply_view_mode(self):
+        mode = self.app_ref.config.get("view_mode", "normal")
+        compact = mode == "compact"
+        self.setFixedSize(560, 430) if compact else self.setFixedSize(760, 500)
+        for city, data in self.city_tabs.items():
+            data["card"].set_view_mode(mode)
+            if "info" in data:
+                self.update_city_tab(city, data["info"])
 
     def apply_theme_to_credit(self):
 

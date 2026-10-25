@@ -175,3 +175,15 @@ class ThemeSystemTests(unittest.TestCase):
         with patch("TrayWeatherApp.app.QMessageBox.about") as about:
             obj.show_about()
         self.assertIn(__version__, about.call_args.args[2])
+
+    def test_view_preview_is_isolated_until_save(self):
+        config = {"view_mode": "normal"}
+        dialog = SettingsDialog(config, self.manager)
+        dialog.view_select.setCurrentIndex(1)
+        self.assertEqual(dialog.preview_card.view_mode, "compact")
+        self.assertFalse(dialog.preview_card.icon_lbl.isHidden())
+        self.assertEqual(config["view_mode"], "normal")
+        self.assertEqual(dialog.get_values()["view_mode"], "compact")
+        dialog.reject()
+        self.assertEqual(config["view_mode"], "normal")
+        dialog.deleteLater()

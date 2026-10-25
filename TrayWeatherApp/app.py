@@ -204,6 +204,8 @@ class TrayWeatherApp(QObject):
             vals = dlg.get_values()
             old_units = self.units
             self.units = vals["units"]
+            self.config["view_mode"] = vals.get("view_mode", "normal")
+            self.window.apply_view_mode()
             if old_units != self.units:
                 for city in list(self.cities):
                     cached = self.cache.get(city, self.units, self.locations.get(city))

@@ -25,6 +25,10 @@ class SettingsDialog(QDialog):
         self.units_input = QComboBox()
         self.units_input.addItems(["metric", "imperial"])
         self.units_input.setCurrentText(config.get("units", "imperial"))
+        self.view_select = QComboBox()
+        self.view_select.addItem("Normal", "normal")
+        self.view_select.addItem("Compact", "compact")
+        self.view_select.setCurrentIndex(1 if config.get("view_mode") == "compact" else 0)
         self.time_cb = QCheckBox("Use 24-hour clock")
         self.time_cb.setChecked(config.get("time_format_24h", False))
         self.debug_cb = QCheckBox("Enable debug logging")
@@ -36,6 +40,7 @@ class SettingsDialog(QDialog):
         form = QFormLayout()
         form.addRow("Units", self.units_input)
         form.addRow("Theme", self.theme_select)
+        form.addRow("View", self.view_select)
         form.addRow(self.time_cb)
         form.addRow(self.debug_cb)
         layout = QVBoxLayout(self)
@@ -82,6 +87,7 @@ class SettingsDialog(QDialog):
         self.theme_select.currentTextChanged.connect(self.update_preview)
         self.units_input.currentTextChanged.connect(self.update_preview)
         self.time_cb.toggled.connect(self.update_preview)
+        self.view_select.currentIndexChanged.connect(self.update_preview)
         self.update_preview()
 
     def update_preview(self, *_):
@@ -96,6 +102,7 @@ class SettingsDialog(QDialog):
         self.save_button.setEnabled(True)
         self.setStyleSheet(self.preview_theme.stylesheet())
         self.preview_card.apply_theme_to_card()
+        self.preview_card.set_view_mode(self.view_select.currentData())
         metric = self.units_input.currentText() == "metric"
         temperature, wind = ("C", "km/h") if metric else ("F", "mph")
         self.preview_card.temp_lbl.setText("21.0°C" if metric else "69.8°F")
@@ -150,6 +157,7 @@ class SettingsDialog(QDialog):
     def get_values(self):
         return {
             "units": self.units_input.currentText(),
+            "view_mode": self.view_select.currentData(),
             "time_format_24h": self.time_cb.isChecked(),
             "debug": self.debug_cb.isChecked(),
             "theme": self.theme_select.currentText(),

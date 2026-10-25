@@ -31,7 +31,8 @@ DEFAULT_CONFIG = {
     "cities": ["New York"],
     "units": "imperial",
     "window_pos": [100, 100],
-    "window_size": [760, 440],
+    "window_size": [760, 500],
+    "view_mode": "normal",
     "debug": False,
     "time_format_24h": False,
     "theme": "System"
@@ -50,7 +51,8 @@ def load_config():
         "cities": ["New York"],
         "units": "imperial",
         "window_pos": [100, 100],
-        "window_size": [760, 440],
+        "window_size": [760, 500],
+    "view_mode": "normal",
         "debug": False,
         "time_format_24h": False,
         "theme": "System"

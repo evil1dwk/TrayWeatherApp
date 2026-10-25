@@ -27,6 +27,7 @@ class GlassCard(QWidget):
         self.setAutoFillBackground(False)
         self.setStyleSheet("background: transparent; border: none;")
         self.app_ref = app_ref
+        self.view_mode = getattr(app_ref, "config", {}).get("view_mode", "normal")
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
         self.radius = 22
         self.bg_color = QColor(20,22,30,150)  # will be replaced in apply_theme_to_card
@@ -101,31 +102,42 @@ class GlassCard(QWidget):
             "wind": wind_color,
         }
 
+        self.set_view_mode(self.view_mode)
         self.update()
         self.repaint()
 
     def themed_detail_html(self, feels, high, low, humid, wind, units_t, units_w):
         c = self._colors
+        column_width = 130 if self.view_mode == "compact" else 170
         return (
             "<table cellspacing='6' cellpadding='0'>"
             f"<tr><td colspan='2'>Feels like: <span style='color:{c['temp']}'>{feels}°{units_t}</span></td></tr>"
-            f"<tr><td width='170'>High: <span style='color:{c['high']}'>{high}°{units_t}</span></td>"
+            f"<tr><td width='{column_width}'>High: <span style='color:{c['high']}'>{high}°{units_t}</span></td>"
             f"<td>Low: <span style='color:{c['low']}'>{low}°{units_t}</span></td></tr>"
-            f"<tr><td width='170'>Humidity: <span style='color:{c['humid']}'>{humid}%</span></td>"
+            f"<tr><td width='{column_width}'>Humidity: <span style='color:{c['humid']}'>{humid}%</span></td>"
             f"<td>Wind: <span style='color:{c['wind']}'>{wind}&nbsp;{units_w}</span></td></tr>"
             "</table>"
         )
 
-    def resizeEvent(self, event):
-        super().resizeEvent(event)
-        self.apply_responsive_layout()
+    def set_view_mode(self, mode):
+        self.view_mode = "compact" if mode == "compact" else "normal"
+        compact = self.view_mode == "compact"
+        margin = 14 if compact else 22
+        self.layout().setContentsMargins(margin, margin, margin, margin)
+        self.layout().setSpacing(12 if compact else 18)
+        self.icon_lbl.setVisible(True)
+        self.icon_lbl.setFixedWidth(90 if compact else 150)
+        self.icon_lbl.setFont(QFont("Segoe UI Emoji", 62 if compact else 100))
+        self.city_lbl.setFont(QFont("Segoe UI", 16 if compact else 20, QFont.Weight.Bold))
+        self.time_lbl.setFont(QFont("Segoe UI", 10 if compact else 11))
+        self.temp_lbl.setFont(QFont("Segoe UI", 30 if compact else 38))
+        self.desc_lbl.setFont(QFont("Segoe UI", 11 if compact else 13))
+        self.more_lbl.setFont(QFont("Segoe UI", 10 if compact else 11))
+        self.status_lbl.setFont(QFont("Segoe UI", 9 if compact else 10))
 
     def apply_responsive_layout(self):
-        # Keep text sizes stable. Give narrow windows the full width for text.
-        self.icon_lbl.setVisible(self.width() >= 620)
-        icon_size = max(64, min(110, int(self.height() * 0.26)))
-        self.icon_lbl.setFont(QFont("Segoe UI Emoji", icon_size))
-
+        # Kept for callers refreshing an existing card; never hide its icon.
+        self.set_view_mode(self.view_mode)
 
     def paintEvent(self, event):
         p = QPainter(self)

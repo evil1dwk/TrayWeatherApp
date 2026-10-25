@@ -121,6 +121,17 @@ An explicit QT_QPA_PLATFORM setting is preserved. To opt back into native Waylan
 Native Wayland may prevent applications from restoring top-level window positions.
 Window geometry is saved when quitting through the tray menu.
 
+## Normal and Compact views
+
+Choose **Normal** or **Compact** under **View** in Settings. Both layouts keep the
+weather icon visible and use a fixed window size; manual resizing and maximizing
+are disabled. Save applies and remembers your choice. Cancel leaves the current
+view unchanged. The Settings preview also reflects the selected view.
+
+Normal uses 760 × 500 logical pixels; Compact uses 560 × 430. Existing saved window
+positions are retained. Older arbitrary window sizes are replaced by the chosen
+view size.
+
 ## Weather freshness and cities
 
 Each weather card shows the last successful download in your computer's local
