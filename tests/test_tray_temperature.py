@@ -48,26 +48,29 @@ class TrayTemperatureTests(unittest.TestCase):
         QCoreApplication.sendPostedEvents(None,QEvent.Type.DeferredDelete)
 
     def test_temperature_uses_large_digits_without_degree_symbol(self):
-        from PyQt6.QtGui import QFont, QFontMetricsF, QPainterPath
+        from PyQt6.QtGui import QPainter, QPainterPath
         captured = []
+        bounds = []
         class RecordingPath(QPainterPath):
             def addText(self, *args):
                 captured.append(args)
                 return super().addText(*args)
-        with patch("PyQt6.QtGui.QPainterPath", RecordingPath):
-            create_temperature_icon(68.7)
+        class RecordingPainter(QPainter):
+            def drawPath(self, path):
+                bounds.append(path.boundingRect())
+                return super().drawPath(path)
+        with patch("PyQt6.QtGui.QPainterPath", RecordingPath), patch(
+                "TrayWeatherApp.config_utils.QPainter", RecordingPainter):
+            for value in (68.7, -13, 105, None):
+                create_temperature_icon(value)
         self.assertEqual(captured[0][2], "69")
-        font = captured[0][1]
-        text = captured[0][2]
-        # Font metrics vary with the platform, installed fonts, and display DPI.
-        # Check that the renderer chooses the largest size that fits its budget.
-        self.assertTrue(font.bold())
-        self.assertLessEqual(QFontMetricsF(font).horizontalAdvance(text), 56)
-        self.assertLessEqual(font.pixelSize(), 48)
-        if font.pixelSize() < 48:
-            larger = QFont(font)
-            larger.setPixelSize(font.pixelSize() + 1)
-            self.assertGreater(QFontMetricsF(larger).horizontalAdvance(text), 56)
+        for args, rect in zip(captured, bounds):
+            self.assertTrue(args[1].bold())
+            self.assertLessEqual(rect.width(), 58.01)
+            self.assertLessEqual(rect.height(), 54.01)
+            self.assertTrue(abs(rect.width() - 58) < .01 or abs(rect.height() - 54) < .01)
+            self.assertAlmostEqual(rect.center().x(), 32)
+            self.assertAlmostEqual(rect.center().y(), 32)
 
     def test_icon_default_and_temperature_option_use_same_tooltip(self):
         owner=SimpleNamespace(config={},theme=ThemeManager(),cities=["Boston"],locations={},
